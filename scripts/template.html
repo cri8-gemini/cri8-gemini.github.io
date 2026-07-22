@@ -26,6 +26,10 @@
     --neutral: #c3c2b7;
     --band: rgba(11, 11, 11, 0.05);
     --wash: rgba(11, 11, 11, 0.04);
+    --pos-1: rgba(42, 120, 214, 0.10);
+    --pos-2: rgba(42, 120, 214, 0.24);
+    --neg-1: rgba(227, 73, 72, 0.10);
+    --neg-2: rgba(227, 73, 72, 0.24);
 
     background: var(--plane);
     color: var(--text-primary);
@@ -53,6 +57,10 @@
       --neutral: #898781;
       --band: rgba(255, 255, 255, 0.06);
       --wash: rgba(255, 255, 255, 0.06);
+      --pos-1: rgba(57, 135, 229, 0.14);
+      --pos-2: rgba(57, 135, 229, 0.30);
+      --neg-1: rgba(230, 103, 103, 0.14);
+      --neg-2: rgba(230, 103, 103, 0.30);
     }
   }
   :root[data-theme="dark"] .viz-root {
@@ -72,6 +80,10 @@
     --neutral: #898781;
     --band: rgba(255, 255, 255, 0.06);
     --wash: rgba(255, 255, 255, 0.06);
+    --pos-1: rgba(57, 135, 229, 0.14);
+    --pos-2: rgba(57, 135, 229, 0.30);
+    --neg-1: rgba(230, 103, 103, 0.14);
+    --neg-2: rgba(230, 103, 103, 0.30);
   }
 
   .wrap { max-width: 980px; margin: 0 auto; }
@@ -146,6 +158,14 @@
     border-bottom: 1px solid var(--axis);
   }
   tbody tr + tr td { border-top: 1px solid var(--grid); }
+
+  #cond-table td.v { text-align: right; font-variant-numeric: tabular-nums; }
+  #cond-table td.p1 { background: var(--pos-1); }
+  #cond-table td.p2 { background: var(--pos-2); }
+  #cond-table td.n1 { background: var(--neg-1); }
+  #cond-table td.n2 { background: var(--neg-2); }
+  #cond-table tr.me td { font-weight: 600; }
+  #cond-table th.rot { font-size: 11px; font-weight: 500; white-space: nowrap; }
 
   footer { margin-top: 20px; font-size: 12px; color: var(--text-muted); }
   footer a { color: inherit; }
@@ -277,6 +297,15 @@
     </div>
   </div>
 
+  <div class="card" id="cond-card" style="margin-top:16px">
+    <h2 class="card-title">원가가 크게 내린 뒤 주가는 어땠나</h2>
+    <p class="card-note" id="cond-note"></p>
+    <div class="table-wrap">
+      <table id="cond-table"></table>
+    </div>
+    <p class="card-note" id="cond-read" style="margin-top:10px"></p>
+  </div>
+
   <div class="card" id="quarter-card" style="margin-top:16px">
     <h2 class="card-title" id="q-title">분기 단위 비교</h2>
     <p class="card-note" id="q-note"></p>
@@ -315,6 +344,9 @@ const RANGES = [
   // 2023년 이후는 코로나 충격이 빠진 구간이다. 다만 164주뿐이라 잡음 띠가
   // ±0.15 로 넓고, 대조군인 "공급 -> 가격" 관계조차 이 구간에서는 검출되지
   // 않는다. 여기서 관계가 안 보이는 것을 "관계 없음"으로 읽으면 안 된다.
+  // PDF 계열은 2019-12 부터라, 이 구간을 고르면 모든 지표가 같은 기간을 본다.
+  // '전체' 는 지표마다 시작이 다르다 — 지육·116A·123A 는 API 에서 와 2010년부터다.
+  { id: "since2020", label: "2020~", from: "2019-12-01" },
   { id: "since2023", label: "2023~", from: "2023-01-01" },
   { id: "10y", label: "10년", years: 10 },
   { id: "5y", label: "5년", years: 5 },
@@ -940,6 +972,129 @@ function renderTop() {
   });
 }
 
+/* ---------- 원가 하락기 조건부 반응 ---------- */
+
+// "원가가 크게 내린 뒤 주가가 올랐나" 를 종목 × 지표로 늘어놓는다.
+//
+// 값은 주가 상승률이 아니라 **두 평균의 차이**다 —
+//   A = 원가가 13주간 5% 이상 내린 시기의 주가 13주 수익률 평균
+//   B = 원가가 5% 이상 오른 시기의 평균
+//   표시값 = A - B (퍼센트포인트)
+// 양수면 "원가가 내릴 때 주가가 더 올랐다" 다. A 와 B 가 둘 다 양수일 수 있다 —
+// 대부분의 종목이 이 기간에 올랐기 때문이다.
+//
+// 이 표의 쓸모는 순위를 믿는 데 있지 않고, **지표를 옮기면 순위가 재배열되는
+// 것을 보는 데** 있다. 같은 종목이 지육에서 +3, 도축두수에서 -3 이 되는 식이다.
+const COND_CUT = 0.05;      // '크게' 의 기준
+const COND_HORIZON = 13;    // 분기 단위 변화로 본다
+const COND_MIN = 8;         // 이보다 관측이 적으면 계산하지 않는다
+
+// 이 카드도 위에서 고른 기간을 따른다. 안 그러면 화면의 다른 카드와 다른
+// 구간을 보게 되어 값이 어긋난다.
+function rangeFloorWeek() {
+  const range = RANGES.find((r) => r.id === state.range);
+  if (range.from) return weekNo(range.from);
+  if (!range.years) return -Infinity;
+  const last = new Date(DATA.rows[DATA.rows.length - 1][0]);
+  last.setFullYear(last.getFullYear() - range.years);
+  return Math.round(last.getTime() / WEEK_MS);
+}
+
+function conditionalTable() {
+  const floor = rangeFloorWeek();
+  const meats = [];
+  for (const meat of DATA.meat) {
+    // 원가가 크게 내린/오른 주는 종목과 무관하게 육류 계열로 정해진다.
+    const idx = COL[meat.key];
+    const byWeek = new Map();
+    DATA.rows.forEach((r) => { if (r[idx] != null) byWeek.set(weekNo(r[0]), r[idx]); });
+    const down = [], up = [];
+    for (const [w, v] of byWeek) {
+      const past = byWeek.get(w - COND_HORIZON);
+      if (!past) continue;
+      if (w < floor) continue;
+      const change = v / past - 1;
+      if (change <= -COND_CUT) down.push(w);
+      else if (change >= COND_CUT) up.push(w);
+    }
+    if (down.length < COND_MIN || up.length < COND_MIN) continue;
+    meats.push({ meat, down, up, spells: [countSpells(down), countSpells(up)] });
+  }
+
+  const rows = DATA.stocks.map((stock) => {
+    const idx = COL[stock.key];
+    const byWeek = new Map();
+    DATA.rows.forEach((r) => { if (r[idx] != null) byWeek.set(weekNo(r[0]), r[idx]); });
+    const ret = (w) => {
+      const now = byWeek.get(w + state.lag), past = byWeek.get(w + state.lag - COND_HORIZON);
+      return now && past ? now / past - 1 : null;
+    };
+    const cells = meats.map(({ down, up }) => {
+      const d = down.map(ret).filter((v) => v != null);
+      const u = up.map(ret).filter((v) => v != null);
+      if (d.length < COND_MIN || u.length < COND_MIN) return null;
+      const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+      return (mean(d) - mean(u)) * 100;
+    });
+    return { stock, cells };
+  });
+  return { meats, rows };
+}
+
+// 겹치는 13주 창이라 관측치가 독립이 아니다. 연속한 주를 한 번으로 센다.
+function countSpells(weeks) {
+  if (!weeks.length) return 0;
+  const sorted = [...weeks].sort((a, b) => a - b);
+  let spells = 1;
+  for (let i = 1; i < sorted.length; i++) if (sorted[i] - sorted[i - 1] > 1) spells++;
+  return spells;
+}
+
+function renderConditional() {
+  const { meats, rows } = conditionalTable();
+  const table = el("cond-table");
+  if (!meats.length) {
+    table.innerHTML = "";
+    el("cond-note").textContent = "이 구간에는 원가가 크게 움직인 시기가 충분하지 않습니다.";
+    el("cond-read").textContent = "";
+    return;
+  }
+
+  el("cond-note").textContent =
+    `원가가 13주 동안 ${COND_CUT * 100}% 이상 내린 시기와 오른 시기를 갈라, `
+    + `${lagPhrase(state.lag)} 기준 주가 13주 수익률의 평균 차이(%p)입니다. `
+    + `양수면 원가가 내릴 때 주가가 더 올랐다는 뜻입니다.`;
+
+  const head = `<thead><tr><th>종목</th>`
+    + meats.map((m) => `<th class="rot">${m.meat.label}</th>`).join("")
+    + `</tr><tr><th style="font-weight:400;color:var(--text-muted)">하락/상승 시기</th>`
+    + meats.map((m) => `<th class="rot" style="font-weight:400;color:var(--text-muted)">${m.spells[0]}/${m.spells[1]}회</th>`).join("")
+    + `</tr></thead>`;
+
+  const body = rows.map(({ stock, cells }) => {
+    const tds = cells.map((v) => {
+      if (v == null) return `<td class="v">—</td>`;
+      const level = Math.abs(v) < 3 ? "" : Math.abs(v) < 10 ? (v > 0 ? "p1" : "n1") : (v > 0 ? "p2" : "n2");
+      return `<td class="v ${level}">${fmt(v, 1)}</td>`;
+    }).join("");
+    const me = stock.key === state.stock ? ' class="me"' : "";
+    return `<tr${me}><td>${stock.label.split(" ")[0]}</td>${tds}</tr>`;
+  }).join("");
+  table.innerHTML = head + `<tbody>${body}</tbody>`;
+
+  // 지표를 옮기면 순위가 얼마나 뒤바뀌는지 한 줄로 알려 준다
+  const best = meats.map((m, i) => {
+    const ranked = rows.map((r) => ({ name: r.stock.label.split(" ")[0], v: r.cells[i] }))
+      .filter((r) => r.v != null).sort((a, b) => b.v - a.v);
+    return ranked.length ? ranked[0].name : null;
+  }).filter(Boolean);
+  const unique = [...new Set(best)];
+  el("cond-read").textContent =
+    `지표 ${meats.length}개에서 1위가 ${unique.length}개 종목으로 갈립니다 (${unique.join(", ")}). `
+    + `순위가 지표에 따라 재배열된다면 원가 민감도가 아니라 그 시기 사정이 값을 만든 것입니다. `
+    + `'하락/상승 시기' 는 겹치는 창을 묶어 센 실제 횟수입니다 — 대개 10~20회뿐이라 평균이 몇 번의 사례에 좌우됩니다.`;
+}
+
 /* ---------- 분기 단위 ---------- */
 
 // 원가는 서서히 쌓여 분기 마진에 반영되고, 주가는 실적 발표 즈음 움직인다.
@@ -1263,6 +1418,7 @@ function render() {
   if (state.view === "chart") renderChart(points); else renderTable(points);
   renderLag();
   renderTop();
+  renderConditional();
 
   chips("qlag-chips", QLAGS, state.qlag, (id) => { state.qlag = id; renderQuarter(); });
   renderQuarter();
