@@ -15,34 +15,33 @@ MERGED_CSV = "data/merged_weekly.csv"
 STATS_CSV = "data/newsline_stats.csv"
 OUT_HTML = "index.html"
 
-# 차트에 노출할 육류 지표. key 는 CSV 컬럼명.
-# 라벨과 단위는 USMEF NEWSLINE PDF 로 확인했다(주간 32주 전량 소수점까지 일치).
+# 차트에서 TXRH 와 겹쳐 볼 지표. key 는 병합 CSV 의 컬럼명, group 은 버튼 줄.
+#
+# 라벨과 단위는 USMEF NEWSLINE PDF 로 확인했다(주간 137주 전량 소수점까지 일치).
 # 주의: price123a 는 필드 순서상 pricePig 옆에 있지만 실제로는 **소고기** 부위다.
 # PDF 의 소고기 부위 표에 123A Short Rib 로 실려 있다.
 MEAT_SERIES = [
-    {"key": "beef", "label": "소고기 지육 ($/100kg)"},
-    {"key": "beef_116", "label": "소고기 116A Chuck Roll ($/kg)"},
-    {"key": "pork", "label": "돼지 지육 ($/100kg)"},
-    {"key": "pork_123a", "label": "소고기 123A Short Rib ($/kg)"},
+    {"key": "beef", "label": "소 지육", "group": "가격", "unit": "$/100kg"},
+    {"key": "beef_116", "label": "소 116A", "group": "가격", "unit": "$/kg"},
+    {"key": "pork_123a", "label": "소 123A", "group": "가격", "unit": "$/kg"},
+    {"key": "pork", "label": "돼지 지육", "group": "가격", "unit": "$/100kg"},
+    {"key": "beef_cutout", "label": "소 컷아웃", "group": "가격", "unit": "$/lb"},
+    {"key": "pork_cutout", "label": "돼지 컷아웃", "group": "가격", "unit": "$/lb"},
+    {"key": "beef_live_price", "label": "생우", "group": "가격", "unit": "$/100lb"},
+    {"key": "pork_live_price", "label": "생돈", "group": "가격", "unit": "$/100lb"},
+    {"key": "beef_slaughter", "label": "소 도축두수", "group": "수급", "unit": "두"},
+    {"key": "pork_slaughter", "label": "돼지 도축두수", "group": "수급", "unit": "두"},
+    {"key": "beef_production", "label": "소 생산량", "group": "수급", "unit": "lb"},
+    {"key": "pork_production", "label": "돼지 생산량", "group": "수급", "unit": "lb"},
+    {"key": "beef_export_korea", "label": "소 한국수출", "group": "수급", "unit": "톤"},
+    {"key": "pork_export_korea", "label": "돼지 한국수출", "group": "수급", "unit": "톤"},
 ]
+
+# newsline_stats.csv 에서 위 컬럼으로 끌어올 지표
+STAT_KEYS = ["cutout", "live_price", "slaughter", "production", "export_korea"]
 
 STOCK_LABEL = "TXRH"
 
-# 시장동향 지표. 단위가 제각각이라 한 축에 못 올리고 지표마다 차트를 따로 둔다.
-# scale/suffix 는 화면 표기용 (525000 -> "52.5만 두").
-STAT_METRICS = [
-    {"key": "cutout", "label": "컷아웃 가격", "unit": "$/lb",
-     "prefix": "$", "scale": 1, "suffix": "", "digits": 2},
-    {"key": "live_price", "label": "생축 현금가", "unit": "$/100lb",
-     "prefix": "$", "scale": 1, "suffix": "", "digits": 2},
-    {"key": "slaughter", "label": "도축두수", "unit": "두",
-     "prefix": "", "scale": 10000, "suffix": "만 두", "digits": 1},
-    {"key": "production", "label": "생산량", "unit": "파운드",
-     "prefix": "", "scale": 100000000, "suffix": "억 lb", "digits": 2},
-    {"key": "export_korea", "label": "한국향 수출량", "unit": "톤",
-     "prefix": "", "scale": 1000, "suffix": "천 톤", "digits": 2},
-]
-SPECIES = [{"key": "beef", "label": "소고기"}, {"key": "pork", "label": "돼지고기"}]
 
 
 def iso_week(date_str):
@@ -93,6 +92,9 @@ def merge():
         entry["txrh"] = to_float(row.get("adj_close"))
         entry["txrh_close"] = to_float(row.get("close"))
 
+    for key, values in stats_by_week().items():
+        weeks.setdefault(key, {"date": None, "stock_date": None}).update(values)
+
     merged = []
     for key in sorted(weeks):
         entry = weeks[key]
@@ -111,24 +113,17 @@ def write_merged_csv(rows):
             writer.writerow([row.get(c) if row.get(c) is not None else "" for c in columns])
 
 
-def read_stats():
-    """축종별 주간 지표를 {축종: [[주차, 지표...], ...]} 로 만든다.
+def stats_by_week():
+    """newsline_stats.csv 를 {ISO주차: {컬럼: 값}} 으로 만든다.
 
-    주가 비어 있는 구간은 값을 채우지 않고 None 으로 남긴다. 2025년 10~11월
-    생산량처럼 실제로 발표되지 않은 구간이 있는데, 이어 그리면 없던 데이터를
-    있는 것처럼 보이게 된다.
+    가격표·주가와 같은 ISO 주차 키로 맞춰야 한 행에 나란히 놓인다.
     """
-    keys = [m["key"] for m in STAT_METRICS]
-    table = {s["key"]: {} for s in SPECIES}
-    for row in read_csv(STATS_CSV):
-        if row["species"] not in table or row["metric"] not in keys:
-            continue
-        table[row["species"]].setdefault(row["week"], {})[row["metric"]] = to_float(row["value"])
-
     out = {}
-    for species, weeks in table.items():
-        out[species] = [[week, *[weeks[week].get(k) for k in keys]]
-                        for week in sorted(weeks)]
+    for row in read_csv(STATS_CSV):
+        if row["metric"] not in STAT_KEYS:
+            continue
+        column = f"{row['species']}_{row['metric']}"
+        out.setdefault(iso_week(row["week"]), {})[column] = to_float(row["value"])
     return out
 
 
@@ -139,9 +134,6 @@ def build_payload(rows):
         "stockLabel": STOCK_LABEL,
         "meat": MEAT_SERIES,
         "columns": keys,
-        "statMetrics": STAT_METRICS,
-        "species": SPECIES,
-        "stats": read_stats(),
         # [날짜, txrh, beef, beef_116, pork, pork_123a]
         "rows": [[r["date"], *[r.get(k) for k in keys]] for r in rows if r.get("date")],
     }

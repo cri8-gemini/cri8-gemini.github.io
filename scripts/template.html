@@ -147,17 +147,6 @@
   }
   tbody tr + tr td { border-top: 1px solid var(--grid); }
 
-  /* 지표마다 단위가 달라 한 축에 못 올린다. 각자 축을 가진 작은 차트로 늘어놓고,
-     세로선만 공유해 같은 시점을 비교하게 한다. */
-  .facets { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
-  .facet { position: relative; }
-  .facet-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
-  .facet-title { font-size: 12.5px; font-weight: 600; }
-  .facet-unit { font-size: 11px; color: var(--text-muted); }
-  .facet-last { margin-left: auto; font-size: 12.5px; font-weight: 600;
-                font-variant-numeric: tabular-nums; }
-  #stats-card { position: relative; }
-
   footer { margin-top: 20px; font-size: 12px; color: var(--text-muted); }
   footer a { color: inherit; }
   .hidden { display: none; }
@@ -185,8 +174,12 @@
       <div class="chips" role="group" aria-labelledby="lbl-range" id="range-chips"></div>
     </div>
     <div class="group">
-      <span class="group-label" id="lbl-meat">육류 지표</span>
+      <span class="group-label" id="lbl-meat">가격 지표</span>
       <div class="chips" role="group" aria-labelledby="lbl-meat" id="meat-chips"></div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-meat2">수급 지표</span>
+      <div class="chips" role="group" aria-labelledby="lbl-meat2" id="meat-chips2"></div>
     </div>
     <div class="group">
       <span class="group-label" id="lbl-lag">시차</span>
@@ -250,19 +243,6 @@
     <p class="card-note" id="lag-read" style="margin-top:10px"></p>
   </div>
 
-  <div class="card" id="stats-card" style="margin-top:16px">
-    <h2 class="card-title">미국 육류 시장동향</h2>
-    <p class="card-note" id="stats-note"></p>
-
-    <div class="group" style="margin-bottom:14px">
-      <span class="group-label" id="lbl-species">축종</span>
-      <div class="chips" role="group" aria-labelledby="lbl-species" id="species-chips"></div>
-    </div>
-
-    <div class="facets" id="facets"></div>
-    <div class="tooltip" id="facet-tooltip" role="status" aria-live="polite"></div>
-  </div>
-
   <div class="card" id="quarter-card" style="margin-top:16px">
     <h2 class="card-title" id="q-title">분기 단위 비교</h2>
     <p class="card-note" id="q-note"></p>
@@ -310,7 +290,6 @@ const state = {
   // 육류 선이 바닥에 눌린다. 로그 축에서는 세로 거리 = 변화율이라 나란히 읽힌다.
   scale: "log",
   lag: 0,
-  species: "beef",
   qlag: "1", // 분기 카드 기본값: 원가가 다음 분기 주가에 반영된다는 가설
   view: "chart",
 };
@@ -538,10 +517,15 @@ function renderChart(points) {
     }));
   }
 
-  // x 눈금
+  // x 눈금. 구간 맨 앞에 몇 주뿐인 해가 있으면 다음 해와 겹쳐 "20234" 로
+  // 찍히므로 픽셀 간격으로 한 번 더 거른다.
+  let lastLabelX = -Infinity;
   yearTicks(points, innerW).forEach((tick) => {
+    const x = scaleX(tick.t);
+    if (x - lastLabelX < 38) return;
+    lastLabelX = x;
     svg.appendChild(node("text", {
-      x: scaleX(tick.t), y: HEIGHT - 8, "text-anchor": "middle",
+      x, y: HEIGHT - 8, "text-anchor": "middle",
       fill: "var(--text-muted)", "font-size": 11,
     }, tick.label));
   });
@@ -813,195 +797,6 @@ function lagHover(clientX) {
   tip.classList.add("on");
 }
 
-/* ---------- 시장동향 지표 ---------- */
-
-// 단위가 제각각이라(컷아웃 $3.71 / 도축두수 52만두 / 생산량 4.65억lb) 한 축에
-// 올릴 수 없다. 지표마다 자기 축을 가진 작은 차트로 늘어놓고, 세로선만 공유해
-// 같은 시점을 비교하게 한다.
-const FACET_H = 150;
-const FACET_PAD = { top: 12, right: 12, bottom: 20, left: 52 };
-
-function statRows() {
-  return DATA.stats[state.species] || [];
-}
-
-function statLabel(metric, value) {
-  if (value == null) return "—";
-  return metric.prefix + fmt(value / metric.scale, metric.digits) + metric.suffix;
-}
-
-function renderMarketStats() {
-  const rows = statRows();
-  const host = el("facets");
-  host.innerHTML = "";
-
-  if (!rows.length) {
-    el("stats-note").textContent = "이 축종의 지표가 없습니다.";
-    return;
-  }
-
-  const t0 = new Date(rows[0][0]).getTime();
-  const t1 = new Date(rows[rows.length - 1][0]).getTime();
-
-  // 두 단계로 나눈다. 격자가 자리를 잡기 전에 폭을 재면 첫 차트만 혼자 있는
-  // 상태의 폭(전체 너비)으로 잡혀 축척이 어긋난다.
-  const slots = DATA.statMetrics.map((metric, index) => {
-    // 값이 있는 주만 남긴다. 없는 구간은 이어 그리지 않고 선을 끊는다 —
-    // 2025년 10~11월 생산량처럼 실제로 발표되지 않은 구간이 있는데, 이어
-    // 그리면 없던 데이터를 있는 것처럼 보이게 된다.
-    const pts = rows
-      .map((r) => ({ date: r[0], t: new Date(r[0]).getTime(), v: r[index + 1] }))
-      .filter((p) => p.v != null);
-    if (pts.length < 2) return null;
-
-    const wrap = document.createElement("div");
-    wrap.className = "facet";
-    wrap.innerHTML = `<div class="facet-head">
-        <span class="facet-title">${metric.label}</span>
-        <span class="facet-unit">${metric.unit}</span>
-        <span class="facet-last">${statLabel(metric, pts[pts.length - 1].v)}</span>
-      </div>`;
-    const svg = node("svg", { role: "img", "aria-label": `${metric.label} 추이` });
-    wrap.appendChild(svg);
-    host.appendChild(wrap);
-    return { metric, pts, wrap, svg };
-  }).filter(Boolean);
-
-  slots.forEach(({ metric, pts, wrap, svg }) => {
-    const width = wrap.clientWidth || 320;
-    svg.setAttribute("viewBox", `0 0 ${width} ${FACET_H}`);
-    svg.setAttribute("height", FACET_H);
-    const innerW = width - FACET_PAD.left - FACET_PAD.right;
-    const innerH = FACET_H - FACET_PAD.top - FACET_PAD.bottom;
-
-    const values = pts.map((p) => p.v);
-    let lo = Math.min(...values), hi = Math.max(...values);
-    const pad = (hi - lo) * 0.12 || Math.abs(hi) * 0.1 || 1;
-    lo -= pad; hi += pad;
-
-    // x 는 모든 차트가 같은 구간을 쓴다. 그래야 세로선이 같은 시점을 가리킨다.
-    const sx = (t) => FACET_PAD.left + ((t - t0) / (t1 - t0 || 1)) * innerW;
-    const sy = (v) => FACET_PAD.top + innerH - ((v - lo) / (hi - lo || 1)) * innerH;
-
-    niceTicks(lo, hi, 3).forEach((v) => {
-      svg.appendChild(node("line", {
-        x1: FACET_PAD.left, x2: FACET_PAD.left + innerW, y1: sy(v), y2: sy(v),
-        stroke: "var(--grid)", "stroke-width": 1,
-      }));
-      svg.appendChild(node("text", {
-        x: FACET_PAD.left - 7, y: sy(v) + 4, "text-anchor": "end",
-        fill: "var(--text-muted)", "font-size": 10, "font-variant-numeric": "tabular-nums",
-      }, fmt(v / metric.scale, metric.digits)));
-    });
-
-    // 구간 맨 앞에 몇 주밖에 없는 해가 있으면 그 라벨이 다음 해와 겹쳐
-    // "20234" 처럼 찍힌다. 픽셀 간격으로 한 번 더 거른다.
-    let lastLabelX = -Infinity;
-    yearTicks(pts, innerW).forEach((tick) => {
-      const x = sx(tick.t);
-      if (x - lastLabelX < 34) return;
-      lastLabelX = x;
-      svg.appendChild(node("text", {
-        x, y: FACET_H - 6, "text-anchor": "middle",
-        fill: "var(--text-muted)", "font-size": 10,
-      }, tick.label));
-    });
-
-    // 한 주 넘게 벌어지면 선을 끊는다
-    let d = "";
-    pts.forEach((p, i) => {
-      const gap = i && (p.t - pts[i - 1].t) > 8 * 86400000;
-      d += `${i === 0 || gap ? "M" : "L"}${sx(p.t).toFixed(1)},${sy(p.v).toFixed(1)}`;
-    });
-    svg.appendChild(node("path", {
-      d, fill: "none", stroke: "var(--series-meat)", "stroke-width": 2,
-      "stroke-linejoin": "round", "stroke-linecap": "round",
-    }));
-
-    const cross = node("line", {
-      y1: FACET_PAD.top, y2: FACET_PAD.top + innerH,
-      stroke: "var(--axis)", "stroke-width": 1, opacity: 0,
-    });
-    cross.classList.add("facet-cross");
-    svg.appendChild(cross);
-
-    const dot = node("circle", {
-      r: 4, opacity: 0, fill: "var(--series-meat)",
-      stroke: "var(--surface-1)", "stroke-width": 2,
-    });
-    dot.classList.add("facet-dot");
-    svg.appendChild(dot);
-
-    const hit = node("rect", {
-      x: FACET_PAD.left, y: FACET_PAD.top, width: innerW, height: innerH, fill: "transparent",
-    });
-    hit.style.cursor = "crosshair";
-    svg.appendChild(hit);
-
-    svg._facet = { pts, sx, sy, metric, width };
-  });
-
-  const covered = DATA.statMetrics
-    .map((m, i) => rows.filter((r) => r[i + 1] != null).length);
-  el("stats-note").textContent =
-    `USMEF NEWSLINE 주간 PDF 에서 추출 · 지표별 ${Math.min(...covered)}~${Math.max(...covered)}주 · `
-    + "발표되지 않은 구간은 선을 끊었습니다";
-}
-
-function facetHover(clientX) {
-  const svgs = [...el("facets").querySelectorAll("svg")];
-  if (!svgs.length) return;
-
-  // 어느 차트 위에 있든 세로선은 다섯 개 모두에서 같은 시점을 가리킨다.
-  const first = svgs[0];
-  const rect = first.getBoundingClientRect();
-  const ratio = first.viewBox.baseVal.width / rect.width;
-  const x = (clientX - rect.left) * ratio;
-
-  let hovered = null;
-  svgs.forEach((svg) => {
-    const f = svg._facet;
-    if (!f) return;
-    let best = f.pts[0], bestDist = Infinity;
-    f.pts.forEach((p) => {
-      const dist = Math.abs(f.sx(p.t) - x);
-      if (dist < bestDist) { bestDist = dist; best = p; }
-    });
-    const cross = svg.querySelector(".facet-cross");
-    cross.setAttribute("x1", x); cross.setAttribute("x2", x);
-    cross.setAttribute("opacity", 1);
-    const dot = svg.querySelector(".facet-dot");
-    dot.setAttribute("cx", f.sx(best.t)); dot.setAttribute("cy", f.sy(best.v));
-    dot.setAttribute("opacity", 1);
-    if (svg.getBoundingClientRect().left <= clientX &&
-        clientX <= svg.getBoundingClientRect().right) {
-      hovered = { svg, f, best };
-    }
-  });
-
-  const tip = el("facet-tooltip");
-  if (!hovered) { tip.classList.remove("on"); return; }
-
-  // 수출량은 집계일이 달라 다른 지표와 같은 주에 놓이지 않는다. 그래서 한
-  // 툴팁에 다섯 지표를 모으지 않고, 지금 가리키는 차트의 값만 보여준다.
-  tip.innerHTML = `<div class="tt-date">${hovered.best.date}</div>
-    <div class="tt-row"><span>${hovered.f.metric.label}</span>
-      <span class="tt-val">${statLabel(hovered.f.metric, hovered.best.v)}</span></div>`;
-
-  const card = el("stats-card").getBoundingClientRect();
-  const svgRect = hovered.svg.getBoundingClientRect();
-  tip.style.left = (svgRect.left - card.left
-    + (hovered.f.sx(hovered.best.t) / hovered.f.width) * svgRect.width) + "px";
-  tip.style.top = (svgRect.top - card.top + hovered.f.sy(hovered.best.v) - 10) + "px";
-  tip.classList.add("on");
-}
-
-function facetLeave() {
-  el("facets").querySelectorAll(".facet-cross, .facet-dot")
-    .forEach((n) => n.setAttribute("opacity", 0));
-  el("facet-tooltip").classList.remove("on");
-}
-
 /* ---------- 분기 단위 ---------- */
 
 // 원가는 서서히 쌓여 분기 마진에 반영되고, 주가는 실적 발표 즈음 움직인다.
@@ -1252,8 +1047,12 @@ function chips(container, items, selected, onPick) {
 
 function render() {
   chips("range-chips", RANGES, state.range, (id) => { state.range = id; render(); });
-  chips("meat-chips", DATA.meat.map((m) => ({ id: m.key, label: m.label })), state.meat,
-    (id) => { state.meat = id; render(); });
+  // 지표가 14개라 한 줄에 다 넣으면 못 읽는다. 가격/수급으로 나누되 고르는
+  // 값은 하나다 — 어느 줄에서 고르든 나머지 줄의 선택은 풀린다.
+  const byGroup = (name) => DATA.meat.filter((m) => m.group === name)
+    .map((m) => ({ id: m.key, label: m.label }));
+  chips("meat-chips", byGroup("가격"), state.meat, (id) => { state.meat = id; render(); });
+  chips("meat-chips2", byGroup("수급"), state.meat, (id) => { state.meat = id; render(); });
   chips("lag-chips", LAGS.map((l) => ({ id: String(l), label: lagChipLabel(l) })), String(state.lag),
     (id) => { state.lag = +id; render(); });
   chips("scale-chips", [{ id: "log", label: "로그" }, { id: "linear", label: "선형" }], state.scale,
@@ -1295,10 +1094,6 @@ function render() {
   if (state.view === "chart") renderChart(points); else renderTable(points);
   renderLag();
 
-  chips("species-chips", DATA.species.map((s) => ({ id: s.key, label: s.label })),
-    state.species, (id) => { state.species = id; renderMarketStats(); });
-  renderMarketStats();
-
   chips("qlag-chips", QLAGS, state.qlag, (id) => { state.qlag = id; renderQuarter(); });
   renderQuarter();
 }
@@ -1316,10 +1111,6 @@ const lagPlot = el("lag-plot");
 lagPlot.addEventListener("pointermove", (e) => lagHover(e.clientX));
 lagPlot.addEventListener("pointerleave", () => el("lag-tooltip").classList.remove("on"));
 
-const facets = el("facets");
-facets.addEventListener("pointermove", (e) => facetHover(e.clientX));
-facets.addEventListener("pointerleave", facetLeave);
-
 const qPlot = el("q-plot");
 qPlot.addEventListener("pointermove", (e) => qHover(e.clientX, e.clientY));
 qPlot.addEventListener("pointerleave", () => el("q-tooltip").classList.remove("on"));
@@ -1331,7 +1122,6 @@ window.addEventListener("resize", () => {
     if (!current.points.length) return;
     if (state.view === "chart") renderChart(current.points);
     renderLag();
-    renderMarketStats();
     renderQuarter();
   }, 120);
 });
