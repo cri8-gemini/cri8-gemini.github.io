@@ -10,7 +10,7 @@ import json
 import os
 
 USMEF_CSV = "data/usmef_weekly.csv"
-STOCK_CSV = "data/txrh_weekly.csv"
+STOCK_CSV = "data/stocks/TXRH.csv"
 MERGED_CSV = "data/merged_weekly.csv"
 OUT_HTML = "index.html"
 

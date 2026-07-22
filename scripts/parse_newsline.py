@@ -39,6 +39,9 @@ MIN_PDF_BYTES = 50_000
 LATE_UPLOAD_DAYS = 21   # 없다고 확인된 최근 날짜를 다시 찔러보는 기간
 RETRY_DAYS = 90         # 이미지 PDF 였던 호를 다시 받아 보는 기간
 
+# 발행 요일 우선순위 (월=0). 2026년 29호 중 28호가 수요일, 1호가 목요일이었다.
+PROBE_WEEKDAYS = (2, 3, 1, 4, 0)
+
 DATE_TOKEN = re.compile(r"^\d{1,2}/\d{1,2}$")
 NUMBER = re.compile(r"^-?[\d,]+\.?\d*$")
 
@@ -181,8 +184,12 @@ def parse_table(words, table, next_y, kind):
             for name, cx in table["cols"]:
                 if abs(cx - centre) < dist:
                     token, dist = name, abs(cx - centre)
-            if token:
-                values[token] = float(word[4].replace(",", ""))
+            # 결측을 빈칸이나 '-' 가 아니라 0.00 으로 찍는 주가 있다
+            # (예: 2026-02-19 호의 160 Round bone-in). 시세가 0 일 수는 없다.
+            # JSON API 도 같은 관행이라 build_site.py 에 같은 처리가 있다.
+            number = float(word[4].replace(",", ""))
+            if token and number > 0:
+                values[token] = number
         if label and values:
             out.append((label, values))
     return out
@@ -256,8 +263,18 @@ def scan_dates(manifest, today, year, rebuild):
     그래서 전체를 다시 받을 필요가 없고, 마지막으로 찾은 호 다음 날부터만 보면 된다.
     """
     if rebuild:
-        return [dt.date(year, 1, 1) + dt.timedelta(i)
-                for i in range((min(dt.date(year, 12, 31), today) - dt.date(year, 1, 1)).days + 1)]
+        # 한 해를 매일 찔러보면 365번이다. 발행은 주 1회 수요일(가끔 목요일)이라,
+        # 주 단위로 묶고 요일 우선순위대로 하나를 찾으면 그 주는 끝낸다.
+        # 보통 주당 1번, 많아야 5번으로 줄어든다.
+        groups, monday = [], dt.date(year, 1, 1)
+        monday -= dt.timedelta(monday.weekday())
+        while monday.year <= year and monday <= today:
+            week = [monday + dt.timedelta(i) for i in PROBE_WEEKDAYS]
+            week = [d for d in week if d.year == year and d <= today]
+            if week:
+                groups.append(week)
+            monday += dt.timedelta(7)
+        return groups
 
     found = sorted(d for d, r in manifest.items() if r["found"] == "1")
     start = dt.date.fromisoformat(found[-1]) + dt.timedelta(1) if found else dt.date(year, 1, 1)
@@ -278,14 +295,16 @@ def scan_dates(manifest, today, year, rebuild):
         if row["found"] == "1" and row["parsed"] == "0" and (today - date).days <= RETRY_DAYS:
             candidates.append(date)
 
-    return sorted(set(candidates))
+    return [[d] for d in sorted(set(candidates))]
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--year", type=int, default=dt.date.today().year)
     parser.add_argument("--rebuild", action="store_true",
-                        help="해당 연도를 처음부터 다시 받아 파싱한다 (파서를 고쳤을 때)")
+                        help="해당 연도를 처음부터 다시 훑는다 (과거 연도 백필, 파서 수정 후)")
+    parser.add_argument("--reset", action="store_true",
+                        help="기존 CSV 를 비우고 새로 만든다. 연도별로 나눠 돌릴 때는 쓰지 말 것")
     parser.add_argument("-o", "--out", default=OUT)
     args = parser.parse_args()
 
@@ -294,42 +313,47 @@ def main():
 
     manifest = load_rows(OUT_ISSUES, ["issue"])
     manifest = {k[0]: v for k, v in manifest.items()}
-    cuts = {} if args.rebuild else load_rows(args.out, ["week", "kind", "item"])
-    stats = {} if args.rebuild else load_rows(OUT_STATS, ["week", "species", "metric"])
+    # --rebuild 는 "그 연도를 다시 훑는다"일 뿐, 기존 데이터를 비우지 않는다.
+    # 연도별로 나눠 돌리는 게 정상 사용법이라 비우면 앞서 모은 해가 날아간다.
+    cuts = {} if args.reset else load_rows(args.out, ["week", "kind", "item"])
+    stats = {} if args.reset else load_rows(OUT_STATS, ["week", "species", "metric"])
 
-    targets = scan_dates(manifest, today, args.year, args.rebuild)
-    print(f"탐색 대상 {len(targets)}일"
-          + (f" ({targets[0]} ~ {targets[-1]})" if targets else ""))
+    groups = scan_dates(manifest, today, args.year, args.rebuild)
+    flat = [d for g in groups for d in g]
+    print(f"탐색 대상 {len(groups)}주 / 최대 {len(flat)}일"
+          + (f" ({min(flat)} ~ {max(flat)})" if flat else ""))
 
     new_issues = 0
-    for date in targets:
-        key = date.strftime("%Y%m%d")
-        path = os.path.join(CACHE, key + ".pdf")
-        # URL 경로의 연도는 --year 가 아니라 그 날짜 자신의 연도여야 한다.
-        # 연말을 넘어가면 탐색 구간이 다음 해로 이어지기 때문.
-        if not fetch(date.year, key, path):
-            manifest[date.isoformat()] = {"issue": date.isoformat(), "found": "0",
-                                          "bytes": "0", "parsed": "0"}
-            continue
+    for group in groups:
+        for date in group:
+            key = date.strftime("%Y%m%d")
+            path = os.path.join(CACHE, key + ".pdf")
+            # URL 경로의 연도는 --year 가 아니라 그 날짜 자신의 연도여야 한다.
+            # 연말을 넘어가면 탐색 구간이 다음 해로 이어지기 때문.
+            if not fetch(date.year, key, path):
+                manifest[date.isoformat()] = {"issue": date.isoformat(), "found": "0",
+                                              "bytes": "0", "parsed": "0"}
+                continue
 
-        got, got_stats = parse_pdf(path, date)
-        manifest[date.isoformat()] = {
-            "issue": date.isoformat(), "found": "1",
-            "bytes": str(os.path.getsize(path)), "parsed": "1" if got else "0",
-        }
-        new_issues += 1
-        print(f"{key}: 가격 {len(got)}건 / 지표 {len(got_stats)}건"
-              + ("" if got else "  (텍스트 없음 — 다음 호가 이 주를 덮는다)"))
-
-        # 같은 주가 여러 호에 실린다. 나중 호가 이기게 해서 USDA 수정치를 받는다.
-        for r in got:
-            cuts[(r["week"], r["kind"], r["item"])] = {**r, "value": fmt(r["value"])}
-        for r in got_stats:
-            stats[(r["week"], r["species"], r["metric"])] = {
-                **r, "value": fmt(r["value"]),
-                "prev": fmt(r["prev"]) if r["prev"] is not None else "",
+            got, got_stats = parse_pdf(path, date)
+            manifest[date.isoformat()] = {
+                "issue": date.isoformat(), "found": "1",
+                "bytes": str(os.path.getsize(path)), "parsed": "1" if got else "0",
             }
-        time.sleep(0.2)
+            new_issues += 1
+            print(f"{key}: 가격 {len(got)}건 / 지표 {len(got_stats)}건"
+                  + ("" if got else "  (텍스트 없음 — 다음 호가 이 주를 덮는다)"))
+
+            # 같은 주가 여러 호에 실린다. 나중 호가 이기게 해서 USDA 수정치를 받는다.
+            for r in got:
+                cuts[(r["week"], r["kind"], r["item"])] = {**r, "value": fmt(r["value"])}
+            for r in got_stats:
+                stats[(r["week"], r["species"], r["metric"])] = {
+                    **r, "value": fmt(r["value"]),
+                    "prev": fmt(r["prev"]) if r["prev"] is not None else "",
+                }
+            time.sleep(0.2)
+            break   # 그 주의 발행분을 찾았으면 나머지 요일은 안 본다
 
     cut_rows = write_rows(args.out, cuts, ["week", "kind", "item", "value"],
                           ["week", "kind", "item"])

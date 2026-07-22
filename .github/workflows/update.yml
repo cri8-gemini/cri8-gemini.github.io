@@ -38,8 +38,8 @@ jobs:
       - name: 육류 시세 수집
         run: python scripts/collect_usmef.py
 
-      - name: TXRH 주가 수집
-        run: python scripts/collect_txrh.py
+      - name: 주가 수집 (data/stocks/tickers.txt 목록)
+        run: python scripts/collect_stocks.py
 
       # NEWSLINE PDF 는 주 1회 올라온다. 한 호에 5주치가 실려서 최신 호만 받아도
       # 직전 4주가 매번 다시 들어온다. 그래서 전체를 다시 받지 않고, 마지막으로

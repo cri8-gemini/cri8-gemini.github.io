@@ -1,27 +1,42 @@
-"""TXRH(텍사스 로드하우스) 주간 주가 수집기.
+"""주간 주가 수집기.
 
-Yahoo Finance 차트 API 에서 주봉을 받아 CSV 로 저장한다. 외부 패키지 없이
-표준 라이브러리만 쓴다 (CI 에서 의존성 설치가 필요 없도록).
+data/stocks/tickers.txt 에 적힌 종목을 각각 data/stocks/<티커>.csv 로 저장한다.
+종목마다 파일을 나누는 이유는 diff 다 — 한 파일에 몰아넣으면 매일 모든 종목의
+최신 행이 함께 바뀌어 어느 종목이 갱신됐는지 안 보이고, 한 종목 수집이 실패하면
+나머지까지 휘말린다.
+
+Yahoo Finance 차트 API 를 쓴다. 외부 패키지 없이 표준 라이브러리만 쓰므로
+CI 에서 설치할 의존성이 없다.
 
 수익률 비교에는 배당·액면분할이 반영된 adjClose 를 쓴다. close 는 참고용.
 
 usage:
-    python scripts/collect_txrh.py
-    python scripts/collect_txrh.py --ticker HRL -o data/hrl_weekly.csv
+    python scripts/collect_stocks.py
+    python scripts/collect_stocks.py --ticker DRI
 """
 
 import argparse
 import csv
 import datetime as dt
 import json
+import os
 import sys
+import time
 import urllib.parse
 import urllib.request
 
 CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+STOCK_DIR = "data/stocks"
+TICKERS_FILE = os.path.join(STOCK_DIR, "tickers.txt")
 
 # 육류 시세가 2010년부터라 시작점을 맞춘다 (그 이전은 원본 API 에 없다).
 DEFAULT_START = dt.date(2009, 12, 1)
+
+
+def read_tickers():
+    with open(TICKERS_FILE, encoding="utf-8") as fp:
+        return [line.strip() for line in fp
+                if line.strip() and not line.startswith("#")]
 
 
 def fetch(ticker, start):
@@ -40,7 +55,6 @@ def fetch(ticker, start):
     chart = payload.get("chart") or {}
     if chart.get("error"):
         raise RuntimeError(f"Yahoo 오류: {chart['error']}")
-
     result = (chart.get("result") or [None])[0]
     if not result:
         raise RuntimeError("결과가 비어 있음")
@@ -73,33 +87,41 @@ def to_rows(result):
     return rows
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--ticker", default="TXRH")
-    parser.add_argument("-o", "--out", default="data/txrh_weekly.csv")
-    args = parser.parse_args()
-
-    try:
-        result = fetch(args.ticker, DEFAULT_START)
-    except Exception as exc:
-        print(f"{args.ticker}: 수집 실패 ({exc})", file=sys.stderr)
-        return 1
-
-    rows = to_rows(result)
+def collect(ticker):
+    rows = to_rows(fetch(ticker, DEFAULT_START))
     if not rows:
-        print(f"{args.ticker}: 데이터 없음", file=sys.stderr)
-        return 1
+        raise RuntimeError("데이터 없음")
 
-    with open(args.out, "w", newline="", encoding="utf-8") as fp:
-        # LF 고정 — 이유는 collect_usmef.py 참고
+    path = os.path.join(STOCK_DIR, f"{ticker}.csv")
+    with open(path, "w", newline="", encoding="utf-8") as fp:
         writer = csv.DictWriter(fp, fieldnames=["date", "close", "adj_close", "volume"],
-                                lineterminator="\n")
+                                lineterminator="\n")  # LF 고정 — 러너와 로컬을 맞춘다
         writer.writeheader()
         writer.writerows(rows)
+    return path, rows
 
-    print(f"{args.ticker}: {len(rows)}건 -> {args.out}")
-    print(f"기간: {rows[0]['date']} ~ {rows[-1]['date']}")
-    return 0
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ticker", help="이 종목만 수집 (기본: tickers.txt 전부)")
+    args = parser.parse_args()
+
+    os.makedirs(STOCK_DIR, exist_ok=True)
+    tickers = [args.ticker] if args.ticker else read_tickers()
+
+    failed = 0
+    for ticker in tickers:
+        try:
+            path, rows = collect(ticker)
+        except Exception as exc:
+            # 한 종목이 실패해도 나머지는 계속한다.
+            print(f"{ticker}: 수집 실패 ({exc})", file=sys.stderr)
+            failed += 1
+            continue
+        print(f"{ticker}: {len(rows)}건  {rows[0]['date']} ~ {rows[-1]['date']} -> {path}")
+        time.sleep(0.3)
+
+    return 1 if failed == len(tickers) else 0
 
 
 if __name__ == "__main__":
