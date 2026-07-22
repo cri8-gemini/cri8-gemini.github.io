@@ -61,10 +61,13 @@ def to_rows(result):
         # 거래가 없던 주는 null 로 온다 — 버린다.
         if close is None and adj_close is None:
             continue
+        # 소수점 2자리로 자른다. Yahoo 가 요청마다 수정계수를 재계산해서
+        # adjClose 4째 자리가 ±0.0001 씩 흔들리는데, 그대로 저장하면 값이
+        # 그대로인 날에도 수십 행이 바뀐 diff 가 매일 커밋된다.
         rows.append({
             "date": dt.date.fromtimestamp(stamp).isoformat(),
-            "close": f"{close:.4f}" if close is not None else "",
-            "adj_close": f"{adj_close:.4f}" if adj_close is not None else "",
+            "close": f"{close:.2f}" if close is not None else "",
+            "adj_close": f"{adj_close:.2f}" if adj_close is not None else "",
             "volume": volumes[i] if i < len(volumes) and volumes[i] is not None else "",
         })
     return rows
