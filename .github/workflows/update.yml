@@ -1,0 +1,55 @@
+name: 데이터 갱신
+
+on:
+  # 06:00 KST. 육류 시세는 주 1회 갱신이지만 매일 확인해도 비용이 없고,
+  # 값이 안 바뀐 날은 커밋 자체가 생기지 않는다.
+  schedule:
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/update.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 두 수집기 모두 표준 라이브러리만 쓴다 — 설치할 의존성이 없다.
+      - name: 육류 시세 수집
+        run: python scripts/collect_usmef.py
+
+      - name: TXRH 주가 수집
+        run: python scripts/collect_txrh.py
+
+      - name: 변경분 확인 후 빌드·커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+
+          # 데이터가 그대로면 여기서 끝낸다. index.html 은 매번 수집 시각이
+          # 박혀서 항상 달라지므로, 데이터 변경을 기준으로 판단해야 한다.
+          if git diff --staged --quiet; then
+            echo "데이터 변경 없음 — 커밋 생략"
+            exit 0
+          fi
+
+          python scripts/build_site.py
+          git add index.html
+          git commit -m "데이터 갱신 $(date -u +%Y-%m-%d)"
+          git push
