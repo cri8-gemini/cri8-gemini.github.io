@@ -42,16 +42,24 @@ UNITS = {"억": 10 ** 8, "만": 10 ** 4}
 def parse_korean_number(text):
     """'4억 6,500만' -> 465000000 · '52만 5,000두' -> 525000 · '$ 3.71' -> 3.71"""
     text = text.replace(",", "")
-    total, plain = 0, None
+    total, plains = 0, []
     for match in re.finditer(r"(\d+(?:\.\d+)?)\s*([억만]?)", text):
         value, unit = float(match.group(1)), match.group(2)
         if unit:
             total += value * UNITS[unit]
         else:
-            plain = value
+            plains.append((value, "." in match.group(1)))
+
     if total:
-        return total + (plain or 0)
-    return plain
+        # 억/만 뒤에 붙는 나머지 자리는 정수다("52만 5,000두"). 소수가 붙어 있으면
+        # 값이 아니라 증감폭이 값 자리로 흘러든 것이다("43만 두" + "29.7 %").
+        integers = [v for v, has_decimal in plains if not has_decimal]
+        return total + (integers[0] if integers else 0)
+
+    # 단위가 없는 값은 금액이다($ 3.71). 이때는 소수가 정상이다.
+    # 증감폭이 값 자리 안으로 1pt 차이로 들어오는 호가 있어서("$ 220.02 $10.68"),
+    # 오른쪽 경계를 조이는 대신 "본값은 늘 가장 왼쪽"이라는 성질을 쓴다.
+    return plains[0][0] if plains else None
 
 
 def species_of(word, anchors):

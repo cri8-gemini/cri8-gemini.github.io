@@ -12,6 +12,7 @@ import os
 USMEF_CSV = "data/usmef_weekly.csv"
 STOCK_CSV = "data/stocks/TXRH.csv"
 MERGED_CSV = "data/merged_weekly.csv"
+STATS_CSV = "data/newsline_stats.csv"
 OUT_HTML = "index.html"
 
 # 차트에 노출할 육류 지표. key 는 CSV 컬럼명.
@@ -26,6 +27,22 @@ MEAT_SERIES = [
 ]
 
 STOCK_LABEL = "TXRH"
+
+# 시장동향 지표. 단위가 제각각이라 한 축에 못 올리고 지표마다 차트를 따로 둔다.
+# scale/suffix 는 화면 표기용 (525000 -> "52.5만 두").
+STAT_METRICS = [
+    {"key": "cutout", "label": "컷아웃 가격", "unit": "$/lb",
+     "prefix": "$", "scale": 1, "suffix": "", "digits": 2},
+    {"key": "live_price", "label": "생축 현금가", "unit": "$/100lb",
+     "prefix": "$", "scale": 1, "suffix": "", "digits": 2},
+    {"key": "slaughter", "label": "도축두수", "unit": "두",
+     "prefix": "", "scale": 10000, "suffix": "만 두", "digits": 1},
+    {"key": "production", "label": "생산량", "unit": "파운드",
+     "prefix": "", "scale": 100000000, "suffix": "억 lb", "digits": 2},
+    {"key": "export_korea", "label": "한국향 수출량", "unit": "톤",
+     "prefix": "", "scale": 1000, "suffix": "천 톤", "digits": 2},
+]
+SPECIES = [{"key": "beef", "label": "소고기"}, {"key": "pork", "label": "돼지고기"}]
 
 
 def iso_week(date_str):
@@ -94,6 +111,27 @@ def write_merged_csv(rows):
             writer.writerow([row.get(c) if row.get(c) is not None else "" for c in columns])
 
 
+def read_stats():
+    """축종별 주간 지표를 {축종: [[주차, 지표...], ...]} 로 만든다.
+
+    주가 비어 있는 구간은 값을 채우지 않고 None 으로 남긴다. 2025년 10~11월
+    생산량처럼 실제로 발표되지 않은 구간이 있는데, 이어 그리면 없던 데이터를
+    있는 것처럼 보이게 된다.
+    """
+    keys = [m["key"] for m in STAT_METRICS]
+    table = {s["key"]: {} for s in SPECIES}
+    for row in read_csv(STATS_CSV):
+        if row["species"] not in table or row["metric"] not in keys:
+            continue
+        table[row["species"]].setdefault(row["week"], {})[row["metric"]] = to_float(row["value"])
+
+    out = {}
+    for species, weeks in table.items():
+        out[species] = [[week, *[weeks[week].get(k) for k in keys]]
+                        for week in sorted(weeks)]
+    return out
+
+
 def build_payload(rows):
     keys = ["txrh", *[s["key"] for s in MEAT_SERIES]]
     return {
@@ -101,6 +139,9 @@ def build_payload(rows):
         "stockLabel": STOCK_LABEL,
         "meat": MEAT_SERIES,
         "columns": keys,
+        "statMetrics": STAT_METRICS,
+        "species": SPECIES,
+        "stats": read_stats(),
         # [날짜, txrh, beef, beef_116, pork, pork_123a]
         "rows": [[r["date"], *[r.get(k) for k in keys]] for r in rows if r.get("date")],
     }
