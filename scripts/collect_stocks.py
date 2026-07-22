@@ -34,9 +34,14 @@ DEFAULT_START = dt.date(2009, 12, 1)
 
 
 def read_tickers():
+    """티커 목록. 줄 끝 주석(# 뒤)은 떼어낸다."""
+    tickers = []
     with open(TICKERS_FILE, encoding="utf-8") as fp:
-        return [line.strip() for line in fp
-                if line.strip() and not line.startswith("#")]
+        for line in fp:
+            name = line.split("#")[0].strip()
+            if name:
+                tickers.append(name)
+    return tickers
 
 
 def fetch(ticker, start):
