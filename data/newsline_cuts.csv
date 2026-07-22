@@ -1,0 +1,960 @@
+week,kind,item,value
+2025-12-06,beef_cut,"112A Ribeye Roll, boneless, light",30.95
+2025-12-06,beef_cut,114 Shoulder clod,7.12
+2025-12-06,beef_cut,116A Chuck Roll neck-off,9.54
+2025-12-06,beef_cut,"120 Brisket, boneless",10.15
+2025-12-06,beef_cut,123A Short Rib,11.88
+2025-12-06,beef_cut,"160 Round, bone-in",11.37
+2025-12-06,beef_cut,"167A Knuckle, peeled",9.33
+2025-12-06,beef_cut,168 Top Inside Round,7.66
+2025-12-06,beef_cut,170 Gooseneck Round 18-33,8.01
+2025-12-06,beef_cut,"180 Strip Loin, boneless. 1×1",21.06
+2025-12-06,beef_cut,"184 Loin, top butt, boneless",11.7
+2025-12-06,beef_cut,189A Tenderloin trimmed heavy,42.61
+2025-12-06,beef_cut,193 Flank Steak,13.6
+2025-12-06,beef_cut,"Primal cut, Arm Chuck",6.43
+2025-12-06,beef_cut,"Primal cut, Loin",10.4
+2025-12-06,beef_cut,"Primal cut, Rib",13.97
+2025-12-06,beef_cut,"Primal cut, Round",6.45
+2025-12-06,carcass,Beef Carcass,743.42
+2025-12-06,carcass,Pork Carcass,208.01
+2025-12-06,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.19
+2025-12-06,pork_cut,"Cheek Meat, trimmed N/A",2.3
+2025-12-06,pork_cut,"U40 Loin, trim 410",2.02
+2025-12-06,pork_cut,"U41 Tenderloin, 1.25 down 415",3.8
+2025-12-06,pork_cut,U42 Boston butt trim 406,2.66
+2025-12-06,pork_cut,"U46 Ham, bone in trimmed 401",2.12
+2025-12-06,pork_cut,"U48 Belly, skin-on, fresh 408",3.63
+2025-12-06,pork_cut,"U50 Picnic, smkr trm combo 405",2.26
+2025-12-06,pork_cut,U51 Neck Bones 421,1.01
+2025-12-06,pork_cut,"U54 Front Feet, Toes on 420",1.1
+2025-12-13,beef_cut,"112A Ribeye Roll, boneless, light",31.64
+2025-12-13,beef_cut,114 Shoulder clod,7.32
+2025-12-13,beef_cut,116A Chuck Roll neck-off,9.97
+2025-12-13,beef_cut,"120 Brisket, boneless",10.09
+2025-12-13,beef_cut,123A Short Rib,12.57
+2025-12-13,beef_cut,"160 Round, bone-in",10.86
+2025-12-13,beef_cut,"167A Knuckle, peeled",8.81
+2025-12-13,beef_cut,168 Top Inside Round,7.65
+2025-12-13,beef_cut,170 Gooseneck Round 18-33,7.24
+2025-12-13,beef_cut,"180 Strip Loin, boneless. 1×1",20.45
+2025-12-13,beef_cut,"184 Loin, top butt, boneless",11.39
+2025-12-13,beef_cut,189A Tenderloin trimmed heavy,40.58
+2025-12-13,beef_cut,193 Flank Steak,12.96
+2025-12-13,beef_cut,"Primal cut, Arm Chuck",6.4
+2025-12-13,beef_cut,"Primal cut, Loin",10.2
+2025-12-13,beef_cut,"Primal cut, Rib",13.99
+2025-12-13,beef_cut,"Primal cut, Round",6.26
+2025-12-13,carcass,Beef Carcass,750.99
+2025-12-13,carcass,Pork Carcass,213.95
+2025-12-13,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.12
+2025-12-13,pork_cut,"Cheek Meat, trimmed N/A",2.3
+2025-12-13,pork_cut,"U40 Loin, trim 410",2.05
+2025-12-13,pork_cut,"U41 Tenderloin, 1.25 down 415",3.7
+2025-12-13,pork_cut,U42 Boston butt trim 406,2.77
+2025-12-13,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.13
+2025-12-13,pork_cut,"U46 Ham, bone in trimmed 401",2.3
+2025-12-13,pork_cut,"U48 Belly, skin-on, fresh 408",3.68
+2025-12-13,pork_cut,"U50 Picnic, smkr trm combo 405",2.25
+2025-12-13,pork_cut,U51 Neck Bones 421,0.75
+2025-12-13,pork_cut,"U54 Front Feet, Toes on 420",1.16
+2025-12-20,beef_cut,"112A Ribeye Roll, boneless, light",29.71
+2025-12-20,beef_cut,114 Shoulder clod,7.48
+2025-12-20,beef_cut,116A Chuck Roll neck-off,10.72
+2025-12-20,beef_cut,"120 Brisket, boneless",10.19
+2025-12-20,beef_cut,123A Short Rib,13.01
+2025-12-20,beef_cut,"160 Round, bone-in",11.29
+2025-12-20,beef_cut,"167A Knuckle, peeled",8.43
+2025-12-20,beef_cut,168 Top Inside Round,7.85
+2025-12-20,beef_cut,170 Gooseneck Round 18-33,7.79
+2025-12-20,beef_cut,"180 Strip Loin, boneless. 1×1",19.8
+2025-12-20,beef_cut,"184 Loin, top butt, boneless",11.78
+2025-12-20,beef_cut,189A Tenderloin trimmed heavy,37.71
+2025-12-20,beef_cut,193 Flank Steak,13.09
+2025-12-20,beef_cut,"Primal cut, Arm Chuck",6.59
+2025-12-20,beef_cut,"Primal cut, Loin",10.01
+2025-12-20,beef_cut,"Primal cut, Rib",13.66
+2025-12-20,beef_cut,"Primal cut, Round",6.34
+2025-12-20,carcass,Beef Carcass,763.97
+2025-12-20,carcass,Pork Carcass,216.96
+2025-12-20,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",4.76
+2025-12-20,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2025-12-20,pork_cut,"U40 Loin, trim 410",1.31
+2025-12-20,pork_cut,"U41 Tenderloin, 1.25 down 415",3.86
+2025-12-20,pork_cut,U42 Boston butt trim 406,2.9
+2025-12-20,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.58
+2025-12-20,pork_cut,"U46 Ham, bone in trimmed 401",2.49
+2025-12-20,pork_cut,"U48 Belly, skin-on, fresh 408",3.51
+2025-12-20,pork_cut,"U50 Picnic, smkr trm combo 405",2.56
+2025-12-20,pork_cut,U51 Neck Bones 421,0.98
+2025-12-20,pork_cut,"U54 Front Feet, Toes on 420",1.09
+2025-12-27,beef_cut,"112A Ribeye Roll, boneless, light",26.31
+2025-12-27,beef_cut,114 Shoulder clod,7.88
+2025-12-27,beef_cut,116A Chuck Roll neck-off,11.84
+2025-12-27,beef_cut,"120 Brisket, boneless",10.0
+2025-12-27,beef_cut,123A Short Rib,12.41
+2025-12-27,beef_cut,"160 Round, bone-in",9.94
+2025-12-27,beef_cut,"167A Knuckle, peeled",8.99
+2025-12-27,beef_cut,168 Top Inside Round,8.58
+2025-12-27,beef_cut,170 Gooseneck Round 18-33,8.31
+2025-12-27,beef_cut,"180 Strip Loin, boneless. 1×1",19.44
+2025-12-27,beef_cut,"184 Loin, top butt, boneless",11.71
+2025-12-27,beef_cut,189A Tenderloin trimmed heavy,33.85
+2025-12-27,beef_cut,193 Flank Steak,13.13
+2025-12-27,beef_cut,"Primal cut, Arm Chuck",6.88
+2025-12-27,beef_cut,"Primal cut, Loin",9.8
+2025-12-27,beef_cut,"Primal cut, Rib",12.29
+2025-12-27,beef_cut,"Primal cut, Round",6.65
+2025-12-27,carcass,Beef Carcass,761.0
+2025-12-27,carcass,Pork Carcass,212.56
+2025-12-27,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.13
+2025-12-27,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2025-12-27,pork_cut,"U40 Loin, trim 410",2.18
+2025-12-27,pork_cut,"U41 Tenderloin, 1.25 down 415",3.93
+2025-12-27,pork_cut,U42 Boston butt trim 406,2.99
+2025-12-27,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.74
+2025-12-27,pork_cut,"U46 Ham, bone in trimmed 401",2.38
+2025-12-27,pork_cut,"U48 Belly, skin-on, fresh 408",3.31
+2025-12-27,pork_cut,"U50 Picnic, smkr trm combo 405",2.31
+2025-12-27,pork_cut,U51 Neck Bones 421,1.0
+2025-12-27,pork_cut,"U54 Front Feet, Toes on 420",1.14
+2026-01-03,beef_cut,"112A Ribeye Roll, boneless, light",24.79
+2026-01-03,beef_cut,114 Shoulder clod,8.08
+2026-01-03,beef_cut,116A Chuck Roll neck-off,12.51
+2026-01-03,beef_cut,"120 Brisket, boneless",9.8
+2026-01-03,beef_cut,123A Short Rib,12.92
+2026-01-03,beef_cut,"160 Round, bone-in",11.18
+2026-01-03,beef_cut,"167A Knuckle, peeled",9.09
+2026-01-03,beef_cut,168 Top Inside Round,8.72
+2026-01-03,beef_cut,170 Gooseneck Round 18-33,8.59
+2026-01-03,beef_cut,"180 Strip Loin, boneless. 1×1",18.55
+2026-01-03,beef_cut,"184 Loin, top butt, boneless",11.24
+2026-01-03,beef_cut,189A Tenderloin trimmed heavy,32.01
+2026-01-03,beef_cut,193 Flank Steak,13.38
+2026-01-03,beef_cut,"Primal cut, Arm Chuck",7.01
+2026-01-03,beef_cut,"Primal cut, Loin",9.55
+2026-01-03,beef_cut,"Primal cut, Rib",10.72
+2026-01-03,beef_cut,"Primal cut, Round",6.77
+2026-01-03,carcass,Beef Carcass,754.95
+2026-01-03,carcass,Pork Carcass,208.12
+2026-01-03,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",5.75
+2026-01-03,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-01-03,pork_cut,"U40 Loin, trim 410",2.16
+2026-01-03,pork_cut,"U41 Tenderloin, 1.25 down 415",3.97
+2026-01-03,pork_cut,U42 Boston butt trim 406,3.03
+2026-01-03,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.2
+2026-01-03,pork_cut,"U46 Ham, bone in trimmed 401",2.29
+2026-01-03,pork_cut,"U48 Belly, skin-on, fresh 408",3.4
+2026-01-03,pork_cut,"U50 Picnic, smkr trm combo 405",2.11
+2026-01-03,pork_cut,U51 Neck Bones 421,0.95
+2026-01-03,pork_cut,"U54 Front Feet, Toes on 420",1.33
+2026-01-10,beef_cut,"112A Ribeye Roll, boneless, light",21.5
+2026-01-10,beef_cut,114 Shoulder clod,8.68
+2026-01-10,beef_cut,116A Chuck Roll neck-off,13.53
+2026-01-10,beef_cut,"120 Brisket, boneless",9.86
+2026-01-10,beef_cut,123A Short Rib,12.46
+2026-01-10,beef_cut,"167A Knuckle, peeled",9.36
+2026-01-10,beef_cut,168 Top Inside Round,9.08
+2026-01-10,beef_cut,170 Gooseneck Round 18-33,8.13
+2026-01-10,beef_cut,"180 Strip Loin, boneless. 1×1",18.8
+2026-01-10,beef_cut,"184 Loin, top butt, boneless",11.34
+2026-01-10,beef_cut,189A Tenderloin trimmed heavy,30.67
+2026-01-10,beef_cut,193 Flank Steak,13.38
+2026-01-10,beef_cut,"Primal cut, Arm Chuck",7.4
+2026-01-10,beef_cut,"Primal cut, Loin",9.5
+2026-01-10,beef_cut,"Primal cut, Rib",10.39
+2026-01-10,beef_cut,"Primal cut, Round",6.97
+2026-01-10,carcass,Beef Carcass,762.7
+2026-01-10,carcass,Pork Carcass,202.62
+2026-01-10,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.27
+2026-01-10,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-01-10,pork_cut,"U40 Loin, trim 410",2.1
+2026-01-10,pork_cut,"U41 Tenderloin, 1.25 down 415",4.01
+2026-01-10,pork_cut,U42 Boston butt trim 406,2.89
+2026-01-10,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.75
+2026-01-10,pork_cut,"U46 Ham, bone in trimmed 401",2.21
+2026-01-10,pork_cut,"U48 Belly, skin-on, fresh 408",3.38
+2026-01-10,pork_cut,"U50 Picnic, smkr trm combo 405",1.58
+2026-01-10,pork_cut,U51 Neck Bones 421,0.82
+2026-01-10,pork_cut,"U54 Front Feet, Toes on 420",1.22
+2026-01-17,beef_cut,"112A Ribeye Roll, boneless, light",23.23
+2026-01-17,beef_cut,114 Shoulder clod,8.74
+2026-01-17,beef_cut,116A Chuck Roll neck-off,14.29
+2026-01-17,beef_cut,"120 Brisket, boneless",9.61
+2026-01-17,beef_cut,123A Short Rib,12.85
+2026-01-17,beef_cut,"160 Round, bone-in",10.83
+2026-01-17,beef_cut,"167A Knuckle, peeled",9.44
+2026-01-17,beef_cut,168 Top Inside Round,9.21
+2026-01-17,beef_cut,170 Gooseneck Round 18-33,19.49
+2026-01-17,beef_cut,"180 Strip Loin, boneless. 1×1",19.49
+2026-01-17,beef_cut,"184 Loin, top butt, boneless",11.62
+2026-01-17,beef_cut,189A Tenderloin trimmed heavy,31.7
+2026-01-17,beef_cut,193 Flank Steak,13.66
+2026-01-17,beef_cut,"Primal cut, Arm Chuck",7.58
+2026-01-17,beef_cut,"Primal cut, Loin",9.7
+2026-01-17,beef_cut,"Primal cut, Rib",10.35
+2026-01-17,beef_cut,"Primal cut, Round",7.03
+2026-01-17,carcass,Beef Carcass,767.71
+2026-01-17,carcass,Pork Carcass,203.9
+2026-01-17,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.1
+2026-01-17,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-01-17,pork_cut,"U40 Loin, trim 410",2.13
+2026-01-17,pork_cut,"U41 Tenderloin, 1.25 down 415",4.05
+2026-01-17,pork_cut,U42 Boston butt trim 406,2.66
+2026-01-17,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.76
+2026-01-17,pork_cut,"U46 Ham, bone in trimmed 401",1.98
+2026-01-17,pork_cut,"U48 Belly, skin-on, fresh 408",3.26
+2026-01-17,pork_cut,"U50 Picnic, smkr trm combo 405",1.52
+2026-01-17,pork_cut,U51 Neck Bones 421,0.93
+2026-01-17,pork_cut,"U54 Front Feet, Toes on 420",1.39
+2026-01-24,beef_cut,"112A Ribeye Roll, boneless, light",22.3
+2026-01-24,beef_cut,114 Shoulder clod,8.81
+2026-01-24,beef_cut,116A Chuck Roll neck-off,14.29
+2026-01-24,beef_cut,"120 Brisket, boneless",9.6
+2026-01-24,beef_cut,123A Short Rib,12.83
+2026-01-24,beef_cut,"160 Round, bone-in",10.51
+2026-01-24,beef_cut,"167A Knuckle, peeled",9.42
+2026-01-24,beef_cut,168 Top Inside Round,9.35
+2026-01-24,beef_cut,170 Gooseneck Round 18-33,8.77
+2026-01-24,beef_cut,"180 Strip Loin, boneless. 1×1",20.69
+2026-01-24,beef_cut,"184 Loin, top butt, boneless",12.22
+2026-01-24,beef_cut,189A Tenderloin trimmed heavy,31.64
+2026-01-24,beef_cut,193 Flank Steak,13.46
+2026-01-24,beef_cut,"Primal cut, Arm Chuck",7.66
+2026-01-24,beef_cut,"Primal cut, Loin",10.01
+2026-01-24,beef_cut,"Primal cut, Rib",10.7
+2026-01-24,beef_cut,"Primal cut, Round",7.11
+2026-01-24,carcass,Beef Carcass,778.36
+2026-01-24,carcass,Pork Carcass,207.68
+2026-01-24,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",5.93
+2026-01-24,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-01-24,pork_cut,"U40 Loin, trim 410",2.18
+2026-01-24,pork_cut,"U41 Tenderloin, 1.25 down 415",4.05
+2026-01-24,pork_cut,U42 Boston butt trim 406,2.66
+2026-01-24,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.76
+2026-01-24,pork_cut,"U46 Ham, bone in trimmed 401",2.09
+2026-01-24,pork_cut,"U48 Belly, skin-on, fresh 408",3.31
+2026-01-24,pork_cut,"U50 Picnic, smkr trm combo 405",1.51
+2026-01-24,pork_cut,U51 Neck Bones 421,0.87
+2026-01-24,pork_cut,"U54 Front Feet, Toes on 420",1.41
+2026-01-31,beef_cut,"112A Ribeye Roll, boneless, light",23.07
+2026-01-31,beef_cut,114 Shoulder clod,8.84
+2026-01-31,beef_cut,116A Chuck Roll neck-off,13.56
+2026-01-31,beef_cut,"120 Brisket, boneless",9.48
+2026-01-31,beef_cut,123A Short Rib,13.01
+2026-01-31,beef_cut,"160 Round, bone-in",10.71
+2026-01-31,beef_cut,"167A Knuckle, peeled",9.5
+2026-01-31,beef_cut,168 Top Inside Round,9.63
+2026-01-31,beef_cut,170 Gooseneck Round 18-33,8.83
+2026-01-31,beef_cut,"180 Strip Loin, boneless. 1×1",21.04
+2026-01-31,beef_cut,"184 Loin, top butt, boneless",12.59
+2026-01-31,beef_cut,189A Tenderloin trimmed heavy,31.43
+2026-01-31,beef_cut,193 Flank Steak,13.26
+2026-01-31,beef_cut,"Primal cut, Arm Chuck",7.62
+2026-01-31,beef_cut,"Primal cut, Loin",10.16
+2026-01-31,beef_cut,"Primal cut, Rib",10.75
+2026-01-31,beef_cut,"Primal cut, Round",7.18
+2026-01-31,carcass,Beef Carcass,784.17
+2026-01-31,carcass,Pork Carcass,209.29
+2026-01-31,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",5.05
+2026-01-31,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-01-31,pork_cut,"U40 Loin, trim 410",2.2
+2026-01-31,pork_cut,"U41 Tenderloin, 1.25 down 415",4.18
+2026-01-31,pork_cut,U42 Boston butt trim 406,2.76
+2026-01-31,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.85
+2026-01-31,pork_cut,"U46 Ham, bone in trimmed 401",2.17
+2026-01-31,pork_cut,"U48 Belly, skin-on, fresh 408",3.41
+2026-01-31,pork_cut,"U50 Picnic, smkr trm combo 405",1.89
+2026-01-31,pork_cut,U51 Neck Bones 421,0.79
+2026-01-31,pork_cut,"U54 Front Feet, Toes on 420",1.24
+2026-02-07,beef_cut,"112A Ribeye Roll, boneless, light",23.37
+2026-02-07,beef_cut,114 Shoulder clod,8.72
+2026-02-07,beef_cut,116A Chuck Roll neck-off,12.45
+2026-02-07,beef_cut,"120 Brisket, boneless",9.1
+2026-02-07,beef_cut,123A Short Rib,12.95
+2026-02-07,beef_cut,"160 Round, bone-in",9.37
+2026-02-07,beef_cut,"167A Knuckle, peeled",9.62
+2026-02-07,beef_cut,168 Top Inside Round,9.56
+2026-02-07,beef_cut,170 Gooseneck Round 18-33,9.11
+2026-02-07,beef_cut,"180 Strip Loin, boneless. 1×1",21.15
+2026-02-07,beef_cut,"184 Loin, top butt, boneless",12.72
+2026-02-07,beef_cut,189A Tenderloin trimmed heavy,31.07
+2026-02-07,beef_cut,193 Flank Steak,13.53
+2026-02-07,beef_cut,"Primal cut, Arm Chuck",7.47
+2026-02-07,beef_cut,"Primal cut, Loin",10.2
+2026-02-07,beef_cut,"Primal cut, Rib",11.02
+2026-02-07,beef_cut,"Primal cut, Round",7.28
+2026-02-07,carcass,Beef Carcass,791.38
+2026-02-07,carcass,Pork Carcass,209.04
+2026-02-07,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-02-07,pork_cut,"U40 Loin, trim 410",2.23
+2026-02-07,pork_cut,"U41 Tenderloin, 1.25 down 415",4.16
+2026-02-07,pork_cut,U42 Boston butt trim 406,2.74
+2026-02-07,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.06
+2026-02-07,pork_cut,"U46 Ham, bone in trimmed 401",2.17
+2026-02-07,pork_cut,"U48 Belly, skin-on, fresh 408",3.5
+2026-02-07,pork_cut,"U50 Picnic, smkr trm combo 405",1.65
+2026-02-07,pork_cut,U51 Neck Bones 421,0.94
+2026-02-07,pork_cut,"U54 Front Feet, Toes on 420",1.19
+2026-02-14,beef_cut,"112A Ribeye Roll, boneless, light",22.8
+2026-02-14,beef_cut,114 Shoulder clod,8.65
+2026-02-14,beef_cut,116A Chuck Roll neck-off,11.4
+2026-02-14,beef_cut,"120 Brisket, boneless",9.07
+2026-02-14,beef_cut,123A Short Rib,13.11
+2026-02-14,beef_cut,"160 Round, bone-in",0.0
+2026-02-14,beef_cut,"167A Knuckle, peeled",9.72
+2026-02-14,beef_cut,168 Top Inside Round,9.82
+2026-02-14,beef_cut,170 Gooseneck Round 18-33,9.34
+2026-02-14,beef_cut,"180 Strip Loin, boneless. 1×1",21.55
+2026-02-14,beef_cut,"184 Loin, top butt, boneless",13.13
+2026-02-14,beef_cut,189A Tenderloin trimmed heavy,31.03
+2026-02-14,beef_cut,193 Flank Steak,14.05
+2026-02-14,beef_cut,"Primal cut, Arm Chuck",7.2
+2026-02-14,beef_cut,"Primal cut, Loin",10.39
+2026-02-14,beef_cut,"Primal cut, Rib",10.74
+2026-02-14,beef_cut,"Primal cut, Round",7.33
+2026-02-14,carcass,Beef Carcass,793.52
+2026-02-14,carcass,Pork Carcass,209.37
+2026-02-14,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",5.82
+2026-02-14,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-02-14,pork_cut,"U40 Loin, trim 410",2.33
+2026-02-14,pork_cut,"U41 Tenderloin, 1.25 down 415",4.12
+2026-02-14,pork_cut,U42 Boston butt trim 406,2.82
+2026-02-14,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.44
+2026-02-14,pork_cut,"U46 Ham, bone in trimmed 401",0.0
+2026-02-14,pork_cut,"U48 Belly, skin-on, fresh 408",3.42
+2026-02-14,pork_cut,"U50 Picnic, smkr trm combo 405",1.83
+2026-02-14,pork_cut,U51 Neck Bones 421,0.87
+2026-02-14,pork_cut,"U54 Front Feet, Toes on 420",1.11
+2026-02-21,beef_cut,"112A Ribeye Roll, boneless, light",23.54
+2026-02-21,beef_cut,114 Shoulder clod,8.73
+2026-02-21,beef_cut,116A Chuck Roll neck-off,10.57
+2026-02-21,beef_cut,"120 Brisket, boneless",9.01
+2026-02-21,beef_cut,123A Short Rib,12.91
+2026-02-21,beef_cut,"160 Round, bone-in",9.55
+2026-02-21,beef_cut,"167A Knuckle, peeled",9.9
+2026-02-21,beef_cut,168 Top Inside Round,9.8
+2026-02-21,beef_cut,170 Gooseneck Round 18-33,9.36
+2026-02-21,beef_cut,"180 Strip Loin, boneless. 1×1",21.73
+2026-02-21,beef_cut,"184 Loin, top butt, boneless",13.29
+2026-02-21,beef_cut,189A Tenderloin trimmed heavy,30.85
+2026-02-21,beef_cut,193 Flank Steak,14.61
+2026-02-21,beef_cut,"Primal cut, Arm Chuck",7.02
+2026-02-21,beef_cut,"Primal cut, Loin",10.42
+2026-02-21,beef_cut,"Primal cut, Rib",10.97
+2026-02-21,beef_cut,"Primal cut, Round",7.34
+2026-02-21,carcass,Beef Carcass,797.81
+2026-02-21,carcass,Pork Carcass,211.29
+2026-02-21,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.11
+2026-02-21,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-02-21,pork_cut,"U40 Loin, trim 410",2.39
+2026-02-21,pork_cut,"U41 Tenderloin, 1.25 down 415",4.13
+2026-02-21,pork_cut,U42 Boston butt trim 406,2.82
+2026-02-21,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.62
+2026-02-21,pork_cut,"U46 Ham, bone in trimmed 401",2.16
+2026-02-21,pork_cut,"U48 Belly, skin-on, fresh 408",3.37
+2026-02-21,pork_cut,"U50 Picnic, smkr trm combo 405",1.75
+2026-02-21,pork_cut,U51 Neck Bones 421,0.96
+2026-02-21,pork_cut,"U54 Front Feet, Toes on 420",1.12
+2026-02-28,beef_cut,"112A Ribeye Roll, boneless, light",24.59
+2026-02-28,beef_cut,114 Shoulder clod,8.97
+2026-02-28,beef_cut,116A Chuck Roll neck-off,11.01
+2026-02-28,beef_cut,"120 Brisket, boneless",9.41
+2026-02-28,beef_cut,123A Short Rib,13.02
+2026-02-28,beef_cut,"160 Round, bone-in",10.92
+2026-02-28,beef_cut,"167A Knuckle, peeled",10.24
+2026-02-28,beef_cut,168 Top Inside Round,10.19
+2026-02-28,beef_cut,170 Gooseneck Round 18-33,9.51
+2026-02-28,beef_cut,"180 Strip Loin, boneless. 1×1",22.33
+2026-02-28,beef_cut,"184 Loin, top butt, boneless",13.8
+2026-02-28,beef_cut,189A Tenderloin trimmed heavy,32.45
+2026-02-28,beef_cut,193 Flank Steak,15.74
+2026-02-28,beef_cut,"Primal cut, Arm Chuck",7.23
+2026-02-28,beef_cut,"Primal cut, Loin",10.76
+2026-02-28,beef_cut,"Primal cut, Rib",11.27
+2026-02-28,beef_cut,"Primal cut, Round",7.53
+2026-02-28,carcass,Beef Carcass,813.82
+2026-02-28,carcass,Pork Carcass,214.32
+2026-02-28,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-02-28,pork_cut,"U40 Loin, trim 410",2.41
+2026-02-28,pork_cut,"U41 Tenderloin, 1.25 down 415",4.2
+2026-02-28,pork_cut,U42 Boston butt trim 406,2.84
+2026-02-28,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.48
+2026-02-28,pork_cut,"U48 Belly, skin-on, fresh 408",3.5
+2026-02-28,pork_cut,"U50 Picnic, smkr trm combo 405",1.78
+2026-02-28,pork_cut,U51 Neck Bones 421,0.97
+2026-02-28,pork_cut,"U54 Front Feet, Toes on 420",1.42
+2026-03-07,beef_cut,"112A Ribeye Roll, boneless, light",25.28
+2026-03-07,beef_cut,114 Shoulder clod,9.24
+2026-03-07,beef_cut,116A Chuck Roll neck-off,11.26
+2026-03-07,beef_cut,"120 Brisket, boneless",9.51
+2026-03-07,beef_cut,123A Short Rib,13.39
+2026-03-07,beef_cut,"160 Round, bone-in",11.18
+2026-03-07,beef_cut,"167A Knuckle, peeled",10.52
+2026-03-07,beef_cut,168 Top Inside Round,10.41
+2026-03-07,beef_cut,170 Gooseneck Round 18-33,9.48
+2026-03-07,beef_cut,"180 Strip Loin, boneless. 1×1",22.91
+2026-03-07,beef_cut,"184 Loin, top butt, boneless",14.07
+2026-03-07,beef_cut,189A Tenderloin trimmed heavy,33.85
+2026-03-07,beef_cut,193 Flank Steak,16.66
+2026-03-07,beef_cut,"Primal cut, Arm Chuck",7.29
+2026-03-07,beef_cut,"Primal cut, Loin",11.14
+2026-03-07,beef_cut,"Primal cut, Rib",11.7
+2026-03-07,beef_cut,"Primal cut, Round",7.7
+2026-03-07,carcass,Beef Carcass,814.59
+2026-03-07,carcass,Pork Carcass,216.96
+2026-03-07,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.72
+2026-03-07,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-03-07,pork_cut,"U40 Loin, trim 410",2.35
+2026-03-07,pork_cut,"U41 Tenderloin, 1.25 down 415",4.24
+2026-03-07,pork_cut,U42 Boston butt trim 406,2.81
+2026-03-07,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.14
+2026-03-07,pork_cut,"U48 Belly, skin-on, fresh 408",3.61
+2026-03-07,pork_cut,"U50 Picnic, smkr trm combo 405",1.77
+2026-03-07,pork_cut,U51 Neck Bones 421,1.04
+2026-03-07,pork_cut,"U54 Front Feet, Toes on 420",1.22
+2026-03-14,beef_cut,"112A Ribeye Roll, boneless, light",26.18
+2026-03-14,beef_cut,114 Shoulder clod,9.57
+2026-03-14,beef_cut,116A Chuck Roll neck-off,11.45
+2026-03-14,beef_cut,"120 Brisket, boneless",9.99
+2026-03-14,beef_cut,123A Short Rib,13.76
+2026-03-14,beef_cut,"160 Round, bone-in",11.37
+2026-03-14,beef_cut,"167A Knuckle, peeled",10.76
+2026-03-14,beef_cut,168 Top Inside Round,10.32
+2026-03-14,beef_cut,170 Gooseneck Round 18-33,9.99
+2026-03-14,beef_cut,"180 Strip Loin, boneless. 1×1",23.96
+2026-03-14,beef_cut,"184 Loin, top butt, boneless",14.32
+2026-03-14,beef_cut,189A Tenderloin trimmed heavy,34.34
+2026-03-14,beef_cut,193 Flank Steak,17.17
+2026-03-14,beef_cut,"Primal cut, Arm Chuck",7.45
+2026-03-14,beef_cut,"Primal cut, Loin",11.43
+2026-03-14,beef_cut,"Primal cut, Rib",12.04
+2026-03-14,beef_cut,"Primal cut, Round",7.75
+2026-03-14,carcass,Beef Carcass,818.95
+2026-03-14,carcass,Pork Carcass,219.69
+2026-03-14,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.6
+2026-03-14,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-03-14,pork_cut,"U40 Loin, trim 410",2.24
+2026-03-14,pork_cut,"U41 Tenderloin, 1.25 down 415",4.04
+2026-03-14,pork_cut,U42 Boston butt trim 406,2.82
+2026-03-14,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.51
+2026-03-14,pork_cut,"U46 Ham, bone in trimmed 401",2.07
+2026-03-14,pork_cut,"U48 Belly, skin-on, fresh 408",3.95
+2026-03-14,pork_cut,"U50 Picnic, smkr trm combo 405",1.86
+2026-03-14,pork_cut,U51 Neck Bones 421,0.86
+2026-03-14,pork_cut,"U54 Front Feet, Toes on 420",1.24
+2026-03-21,beef_cut,"112A Ribeye Roll, boneless, light",26.81
+2026-03-21,beef_cut,114 Shoulder clod,9.44
+2026-03-21,beef_cut,116A Chuck Roll neck-off,11.43
+2026-03-21,beef_cut,"120 Brisket, boneless",10.33
+2026-03-21,beef_cut,123A Short Rib,13.9
+2026-03-21,beef_cut,"160 Round, bone-in",11.07
+2026-03-21,beef_cut,"167A Knuckle, peeled",10.96
+2026-03-21,beef_cut,168 Top Inside Round,10.17
+2026-03-21,beef_cut,170 Gooseneck Round 18-33,9.87
+2026-03-21,beef_cut,"180 Strip Loin, boneless. 1×1",24.2
+2026-03-21,beef_cut,"184 Loin, top butt, boneless",14.46
+2026-03-21,beef_cut,189A Tenderloin trimmed heavy,35.2
+2026-03-21,beef_cut,193 Flank Steak,18.55
+2026-03-21,beef_cut,"Primal cut, Arm Chuck",7.49
+2026-03-21,beef_cut,"Primal cut, Loin",11.69
+2026-03-21,beef_cut,"Primal cut, Rib",12.43
+2026-03-21,beef_cut,"Primal cut, Round",7.68
+2026-03-21,carcass,Beef Carcass,818.47
+2026-03-21,carcass,Pork Carcass,218.42
+2026-03-21,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",5.89
+2026-03-21,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-03-21,pork_cut,"U40 Loin, trim 410",2.25
+2026-03-21,pork_cut,"U41 Tenderloin, 1.25 down 415",3.9
+2026-03-21,pork_cut,U42 Boston butt trim 406,2.84
+2026-03-21,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.54
+2026-03-21,pork_cut,"U46 Ham, bone in trimmed 401",1.92
+2026-03-21,pork_cut,"U48 Belly, skin-on, fresh 408",4.19
+2026-03-21,pork_cut,"U50 Picnic, smkr trm combo 405",2.09
+2026-03-21,pork_cut,U51 Neck Bones 421,0.93
+2026-03-21,pork_cut,"U54 Front Feet, Toes on 420",1.25
+2026-03-28,beef_cut,"112A Ribeye Roll, boneless, light",27.95
+2026-03-28,beef_cut,114 Shoulder clod,9.26
+2026-03-28,beef_cut,116A Chuck Roll neck-off,10.87
+2026-03-28,beef_cut,"120 Brisket, boneless",10.33
+2026-03-28,beef_cut,123A Short Rib,13.62
+2026-03-28,beef_cut,"167A Knuckle, peeled",10.86
+2026-03-28,beef_cut,168 Top Inside Round,9.39
+2026-03-28,beef_cut,170 Gooseneck Round 18-33,9.51
+2026-03-28,beef_cut,"180 Strip Loin, boneless. 1×1",24.57
+2026-03-28,beef_cut,"184 Loin, top butt, boneless",13.83
+2026-03-28,beef_cut,189A Tenderloin trimmed heavy,35.6
+2026-03-28,beef_cut,193 Flank Steak,18.59
+2026-03-28,beef_cut,"Primal cut, Arm Chuck",7.31
+2026-03-28,beef_cut,"Primal cut, Loin",11.62
+2026-03-28,beef_cut,"Primal cut, Rib",12.19
+2026-03-28,beef_cut,"Primal cut, Round",7.41
+2026-03-28,carcass,Beef Carcass,814.09
+2026-03-28,carcass,Pork Carcass,213.36
+2026-03-28,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-03-28,pork_cut,"U40 Loin, trim 410",2.21
+2026-03-28,pork_cut,"U41 Tenderloin, 1.25 down 415",3.9
+2026-03-28,pork_cut,U42 Boston butt trim 406,2.86
+2026-03-28,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.41
+2026-03-28,pork_cut,"U46 Ham, bone in trimmed 401",1.81
+2026-03-28,pork_cut,"U48 Belly, skin-on, fresh 408",4.19
+2026-03-28,pork_cut,"U50 Picnic, smkr trm combo 405",2.31
+2026-03-28,pork_cut,U51 Neck Bones 421,0.91
+2026-03-28,pork_cut,"U54 Front Feet, Toes on 420",1.25
+2026-04-04,beef_cut,"112A Ribeye Roll, boneless, light",28.09
+2026-04-04,beef_cut,114 Shoulder clod,9.15
+2026-04-04,beef_cut,116A Chuck Roll neck-off,10.63
+2026-04-04,beef_cut,"120 Brisket, boneless",10.69
+2026-04-04,beef_cut,123A Short Rib,13.74
+2026-04-04,beef_cut,"167A Knuckle, peeled",10.91
+2026-04-04,beef_cut,168 Top Inside Round,9.3
+2026-04-04,beef_cut,170 Gooseneck Round 18-33,9.42
+2026-04-04,beef_cut,"180 Strip Loin, boneless. 1×1",24.35
+2026-04-04,beef_cut,"184 Loin, top butt, boneless",14.14
+2026-04-04,beef_cut,189A Tenderloin trimmed heavy,34.68
+2026-04-04,beef_cut,193 Flank Steak,19.3
+2026-04-04,beef_cut,"Primal cut, Arm Chuck",7.26
+2026-04-04,beef_cut,"Primal cut, Loin",11.57
+2026-04-04,beef_cut,"Primal cut, Rib",12.12
+2026-04-04,beef_cut,"Primal cut, Round",7.27
+2026-04-04,carcass,Beef Carcass,811.43
+2026-04-04,carcass,Pork Carcass,213.64
+2026-04-04,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-04-04,pork_cut,"U40 Loin, trim 410",2.16
+2026-04-04,pork_cut,"U41 Tenderloin, 1.25 down 415",3.85
+2026-04-04,pork_cut,U42 Boston butt trim 406,2.81
+2026-04-04,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.61
+2026-04-04,pork_cut,"U46 Ham, bone in trimmed 401",1.87
+2026-04-04,pork_cut,"U48 Belly, skin-on, fresh 408",4.23
+2026-04-04,pork_cut,"U50 Picnic, smkr trm combo 405",1.87
+2026-04-04,pork_cut,U51 Neck Bones 421,0.89
+2026-04-04,pork_cut,"U54 Front Feet, Toes on 420",1.2
+2026-04-11,beef_cut,"112A Ribeye Roll, boneless, light",25.88
+2026-04-11,beef_cut,114 Shoulder clod,9.29
+2026-04-11,beef_cut,116A Chuck Roll neck-off,10.45
+2026-04-11,beef_cut,"120 Brisket, boneless",10.67
+2026-04-11,beef_cut,123A Short Rib,12.22
+2026-04-11,beef_cut,"160 Round, bone-in",10.89
+2026-04-11,beef_cut,"167A Knuckle, peeled",9.03
+2026-04-11,beef_cut,168 Top Inside Round,9.03
+2026-04-11,beef_cut,170 Gooseneck Round 18-33,9.64
+2026-04-11,beef_cut,"180 Strip Loin, boneless. 1×1",20.6
+2026-04-11,beef_cut,"184 Loin, top butt, boneless",13.91
+2026-04-11,beef_cut,189A Tenderloin trimmed heavy,33.22
+2026-04-11,beef_cut,193 Flank Steak,19.84
+2026-04-11,beef_cut,"Primal cut, Arm Chuck",7.07
+2026-04-11,beef_cut,"Primal cut, Loin",11.32
+2026-04-11,beef_cut,"Primal cut, Rib",11.6
+2026-04-11,beef_cut,"Primal cut, Round",7.11
+2026-04-11,carcass,Beef Carcass,812.72
+2026-04-11,carcass,Pork Carcass,215.53
+2026-04-11,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.42
+2026-04-11,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-04-11,pork_cut,"U40 Loin, trim 410",2.19
+2026-04-11,pork_cut,"U41 Tenderloin, 1.25 down 415",3.95
+2026-04-11,pork_cut,U42 Boston butt trim 406,2.75
+2026-04-11,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.68
+2026-04-11,pork_cut,"U46 Ham, bone in trimmed 401",1.91
+2026-04-11,pork_cut,"U48 Belly, skin-on, fresh 408",4.11
+2026-04-11,pork_cut,"U50 Picnic, smkr trm combo 405",1.96
+2026-04-11,pork_cut,U51 Neck Bones 421,0.85
+2026-04-11,pork_cut,"U54 Front Feet, Toes on 420",1.27
+2026-04-18,beef_cut,"112A Ribeye Roll, boneless, light",24.01
+2026-04-18,beef_cut,114 Shoulder clod,8.56
+2026-04-18,beef_cut,116A Chuck Roll neck-off,10.3
+2026-04-18,beef_cut,"120 Brisket, boneless",10.87
+2026-04-18,beef_cut,123A Short Rib,13.45
+2026-04-18,beef_cut,"167A Knuckle, peeled",10.74
+2026-04-18,beef_cut,168 Top Inside Round,8.98
+2026-04-18,beef_cut,170 Gooseneck Round 18-33,8.44
+2026-04-18,beef_cut,"180 Strip Loin, boneless. 1×1",23.28
+2026-04-18,beef_cut,"184 Loin, top butt, boneless",13.21
+2026-04-18,beef_cut,189A Tenderloin trimmed heavy,33.51
+2026-04-18,beef_cut,193 Flank Steak,19.37
+2026-04-18,beef_cut,"Primal cut, Arm Chuck",7.01
+2026-04-18,beef_cut,"Primal cut, Loin",11.28
+2026-04-18,beef_cut,"Primal cut, Rib",11.63
+2026-04-18,beef_cut,"Primal cut, Round",7.07
+2026-04-18,carcass,Beef Carcass,815.41
+2026-04-18,carcass,Pork Carcass,215.05
+2026-04-18,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-04-18,pork_cut,"U40 Loin, trim 410",2.2
+2026-04-18,pork_cut,"U41 Tenderloin, 1.25 down 415",4.02
+2026-04-18,pork_cut,U42 Boston butt trim 406,2.81
+2026-04-18,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.61
+2026-04-18,pork_cut,"U46 Ham, bone in trimmed 401",0.0
+2026-04-18,pork_cut,"U48 Belly, skin-on, fresh 408",4.13
+2026-04-18,pork_cut,"U50 Picnic, smkr trm combo 405",1.86
+2026-04-18,pork_cut,U51 Neck Bones 421,0.99
+2026-04-18,pork_cut,"U54 Front Feet, Toes on 420",1.29
+2026-04-25,beef_cut,"112A Ribeye Roll, boneless, light",24.77
+2026-04-25,beef_cut,114 Shoulder clod,8.8
+2026-04-25,beef_cut,116A Chuck Roll neck-off,10.35
+2026-04-25,beef_cut,"120 Brisket, boneless",10.99
+2026-04-25,beef_cut,123A Short Rib,13.88
+2026-04-25,beef_cut,"160 Round, bone-in",9.17
+2026-04-25,beef_cut,"167A Knuckle, peeled",10.75
+2026-04-25,beef_cut,168 Top Inside Round,9.18
+2026-04-25,beef_cut,170 Gooseneck Round 18-33,9.01
+2026-04-25,beef_cut,"180 Strip Loin, boneless. 1×1",23.33
+2026-04-25,beef_cut,"184 Loin, top butt, boneless",13.6
+2026-04-25,beef_cut,189A Tenderloin trimmed heavy,33.69
+2026-04-25,beef_cut,193 Flank Steak,19.73
+2026-04-25,beef_cut,"Primal cut, Arm Chuck",7.1
+2026-04-25,beef_cut,"Primal cut, Loin",11.35
+2026-04-25,beef_cut,"Primal cut, Rib",11.52
+2026-04-25,beef_cut,"Primal cut, Round",7.14
+2026-04-25,carcass,Beef Carcass,818.09
+2026-04-25,carcass,Pork Carcass,218.02
+2026-04-25,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-04-25,pork_cut,"U40 Loin, trim 410",2.18
+2026-04-25,pork_cut,"U41 Tenderloin, 1.25 down 415",4.03
+2026-04-25,pork_cut,U42 Boston butt trim 406,2.96
+2026-04-25,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.38
+2026-04-25,pork_cut,"U48 Belly, skin-on, fresh 408",3.77
+2026-04-25,pork_cut,"U50 Picnic, smkr trm combo 405",2.16
+2026-04-25,pork_cut,U51 Neck Bones 421,0.95
+2026-04-25,pork_cut,"U54 Front Feet, Toes on 420",1.42
+2026-05-02,beef_cut,"112A Ribeye Roll, boneless, light",25.47
+2026-05-02,beef_cut,114 Shoulder clod,8.92
+2026-05-02,beef_cut,116A Chuck Roll neck-off,10.64
+2026-05-02,beef_cut,"120 Brisket, boneless",10.95
+2026-05-02,beef_cut,123A Short Rib,13.92
+2026-05-02,beef_cut,"160 Round, bone-in",9.75
+2026-05-02,beef_cut,"167A Knuckle, peeled",10.74
+2026-05-02,beef_cut,168 Top Inside Round,9.43
+2026-05-02,beef_cut,170 Gooseneck Round 18-33,8.89
+2026-05-02,beef_cut,"180 Strip Loin, boneless. 1×1",22.98
+2026-05-02,beef_cut,"184 Loin, top butt, boneless",13.47
+2026-05-02,beef_cut,189A Tenderloin trimmed heavy,33.71
+2026-05-02,beef_cut,193 Flank Steak,20.4
+2026-05-02,beef_cut,"Primal cut, Arm Chuck",7.24
+2026-05-02,beef_cut,"Primal cut, Loin",11.38
+2026-05-02,beef_cut,"Primal cut, Rib",11.65
+2026-05-02,beef_cut,"Primal cut, Round",7.26
+2026-05-02,carcass,Beef Carcass,827.4
+2026-05-02,carcass,Pork Carcass,215.18
+2026-05-02,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.06
+2026-05-02,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-05-02,pork_cut,"U40 Loin, trim 410",2.16
+2026-05-02,pork_cut,"U41 Tenderloin, 1.25 down 415",4.04
+2026-05-02,pork_cut,U42 Boston butt trim 406,3.24
+2026-05-02,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.41
+2026-05-02,pork_cut,"U46 Ham, bone in trimmed 401",2.09
+2026-05-02,pork_cut,"U48 Belly, skin-on, fresh 408",3.44
+2026-05-02,pork_cut,"U50 Picnic, smkr trm combo 405",2.21
+2026-05-02,pork_cut,U51 Neck Bones 421,0.73
+2026-05-02,pork_cut,"U54 Front Feet, Toes on 420",1.54
+2026-05-09,beef_cut,"112A Ribeye Roll, boneless, light",24.83
+2026-05-09,beef_cut,114 Shoulder clod,9.06
+2026-05-09,beef_cut,116A Chuck Roll neck-off,10.81
+2026-05-09,beef_cut,"120 Brisket, boneless",10.9
+2026-05-09,beef_cut,123A Short Rib,14.08
+2026-05-09,beef_cut,"167A Knuckle, peeled",10.53
+2026-05-09,beef_cut,168 Top Inside Round,9.35
+2026-05-09,beef_cut,170 Gooseneck Round 18-33,9.13
+2026-05-09,beef_cut,"180 Strip Loin, boneless. 1×1",23.6
+2026-05-09,beef_cut,"184 Loin, top butt, boneless",13.38
+2026-05-09,beef_cut,189A Tenderloin trimmed heavy,33.65
+2026-05-09,beef_cut,193 Flank Steak,20.94
+2026-05-09,beef_cut,"Primal cut, Arm Chuck",7.21
+2026-05-09,beef_cut,"Primal cut, Loin",11.4
+2026-05-09,beef_cut,"Primal cut, Rib",11.83
+2026-05-09,beef_cut,"Primal cut, Round",7.26
+2026-05-09,carcass,Beef Carcass,837.03
+2026-05-09,carcass,Pork Carcass,211.9
+2026-05-09,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-05-09,pork_cut,"U40 Loin, trim 410",2.18
+2026-05-09,pork_cut,"U41 Tenderloin, 1.25 down 415",4.1
+2026-05-09,pork_cut,U42 Boston butt trim 406,3.37
+2026-05-09,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.53
+2026-05-09,pork_cut,"U46 Ham, bone in trimmed 401",0.0
+2026-05-09,pork_cut,"U48 Belly, skin-on, fresh 408",3.51
+2026-05-09,pork_cut,"U50 Picnic, smkr trm combo 405",1.66
+2026-05-09,pork_cut,U51 Neck Bones 421,0.93
+2026-05-09,pork_cut,"U54 Front Feet, Toes on 420",1.47
+2026-05-16,beef_cut,"112A Ribeye Roll, boneless, light",25.74
+2026-05-16,beef_cut,114 Shoulder clod,9.02
+2026-05-16,beef_cut,116A Chuck Roll neck-off,11.0
+2026-05-16,beef_cut,"120 Brisket, boneless",10.69
+2026-05-16,beef_cut,123A Short Rib,13.94
+2026-05-16,beef_cut,"160 Round, bone-in",9.73
+2026-05-16,beef_cut,"167A Knuckle, peeled",10.51
+2026-05-16,beef_cut,168 Top Inside Round,9.35
+2026-05-16,beef_cut,170 Gooseneck Round 18-33,9.03
+2026-05-16,beef_cut,"180 Strip Loin, boneless. 1×1",23.96
+2026-05-16,beef_cut,"184 Loin, top butt, boneless",13.09
+2026-05-16,beef_cut,189A Tenderloin trimmed heavy,33.28
+2026-05-16,beef_cut,193 Flank Steak,21.47
+2026-05-16,beef_cut,"Primal cut, Arm Chuck",7.33
+2026-05-16,beef_cut,"Primal cut, Loin",11.3
+2026-05-16,beef_cut,"Primal cut, Rib",11.67
+2026-05-16,beef_cut,"Primal cut, Round",7.29
+2026-05-16,carcass,Beef Carcass,843.5
+2026-05-16,carcass,Pork Carcass,212.37
+2026-05-16,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-05-16,pork_cut,"U40 Loin, trim 410",2.18
+2026-05-16,pork_cut,"U41 Tenderloin, 1.25 down 415",4.23
+2026-05-16,pork_cut,U42 Boston butt trim 406,3.57
+2026-05-16,pork_cut,U44 Sparerib. 25#/dn-lgt 416,0.0
+2026-05-16,pork_cut,"U46 Ham, bone in trimmed 401",1.92
+2026-05-16,pork_cut,"U48 Belly, skin-on, fresh 408",3.23
+2026-05-16,pork_cut,"U50 Picnic, smkr trm combo 405",1.99
+2026-05-16,pork_cut,U51 Neck Bones 421,0.88
+2026-05-16,pork_cut,"U54 Front Feet, Toes on 420",1.57
+2026-05-23,beef_cut,"112A Ribeye Roll, boneless, light",25.98
+2026-05-23,beef_cut,114 Shoulder clod,9.41
+2026-05-23,beef_cut,116A Chuck Roll neck-off,11.01
+2026-05-23,beef_cut,"120 Brisket, boneless",10.8
+2026-05-23,beef_cut,123A Short Rib,14.42
+2026-05-23,beef_cut,"160 Round, bone-in",0.0
+2026-05-23,beef_cut,"167A Knuckle, peeled",10.55
+2026-05-23,beef_cut,168 Top Inside Round,9.38
+2026-05-23,beef_cut,170 Gooseneck Round 18-33,9.32
+2026-05-23,beef_cut,"180 Strip Loin, boneless. 1×1",23.98
+2026-05-23,beef_cut,"184 Loin, top butt, boneless",13.9
+2026-05-23,beef_cut,189A Tenderloin trimmed heavy,33.46
+2026-05-23,beef_cut,193 Flank Steak,21.95
+2026-05-23,beef_cut,"Primal cut, Arm Chuck",7.44
+2026-05-23,beef_cut,"Primal cut, Loin",11.31
+2026-05-23,beef_cut,"Primal cut, Rib",11.85
+2026-05-23,beef_cut,"Primal cut, Round",7.35
+2026-05-23,carcass,Beef Carcass,851.91
+2026-05-23,carcass,Pork Carcass,212.34
+2026-05-23,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-05-23,pork_cut,"U40 Loin, trim 410",2.27
+2026-05-23,pork_cut,"U41 Tenderloin, 1.25 down 415",4.28
+2026-05-23,pork_cut,U42 Boston butt trim 406,3.77
+2026-05-23,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.63
+2026-05-23,pork_cut,"U46 Ham, bone in trimmed 401",1.8
+2026-05-23,pork_cut,"U48 Belly, skin-on, fresh 408",3.09
+2026-05-23,pork_cut,"U50 Picnic, smkr trm combo 405",1.9
+2026-05-23,pork_cut,U51 Neck Bones 421,1.04
+2026-05-23,pork_cut,"U54 Front Feet, Toes on 420",1.59
+2026-05-30,beef_cut,"112A Ribeye Roll, boneless, light",26.37
+2026-05-30,beef_cut,114 Shoulder clod,9.41
+2026-05-30,beef_cut,116A Chuck Roll neck-off,9.89
+2026-05-30,beef_cut,"120 Brisket, boneless",10.85
+2026-05-30,beef_cut,123A Short Rib,14.66
+2026-05-30,beef_cut,"167A Knuckle, peeled",10.54
+2026-05-30,beef_cut,168 Top Inside Round,9.23
+2026-05-30,beef_cut,170 Gooseneck Round 18-33,9.42
+2026-05-30,beef_cut,"180 Strip Loin, boneless. 1×1",23.84
+2026-05-30,beef_cut,"184 Loin, top butt, boneless",12.77
+2026-05-30,beef_cut,189A Tenderloin trimmed heavy,33.24
+2026-05-30,beef_cut,193 Flank Steak,22.12
+2026-05-30,beef_cut,"Primal cut, Arm Chuck",7.37
+2026-05-30,beef_cut,"Primal cut, Loin",11.31
+2026-05-30,beef_cut,"Primal cut, Rib",11.93
+2026-05-30,beef_cut,"Primal cut, Round",7.36
+2026-05-30,carcass,Beef Carcass,848.01
+2026-05-30,carcass,Pork Carcass,217.67
+2026-05-30,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",5.76
+2026-05-30,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-05-30,pork_cut,"U40 Loin, trim 410",2.32
+2026-05-30,pork_cut,"U41 Tenderloin, 1.25 down 415",4.34
+2026-05-30,pork_cut,U42 Boston butt trim 406,3.84
+2026-05-30,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.54
+2026-05-30,pork_cut,"U46 Ham, bone in trimmed 401",2.01
+2026-05-30,pork_cut,"U48 Belly, skin-on, fresh 408",2.99
+2026-05-30,pork_cut,"U50 Picnic, smkr trm combo 405",2.0
+2026-05-30,pork_cut,U51 Neck Bones 421,0.91
+2026-05-30,pork_cut,"U54 Front Feet, Toes on 420",1.75
+2026-06-06,beef_cut,"112A Ribeye Roll, boneless, light",26.84
+2026-06-06,beef_cut,114 Shoulder clod,9.06
+2026-06-06,beef_cut,116A Chuck Roll neck-off,10.59
+2026-06-06,beef_cut,"120 Brisket, boneless",10.72
+2026-06-06,beef_cut,123A Short Rib,14.49
+2026-06-06,beef_cut,"167A Knuckle, peeled",10.46
+2026-06-06,beef_cut,168 Top Inside Round,9.31
+2026-06-06,beef_cut,170 Gooseneck Round 18-33,8.62
+2026-06-06,beef_cut,"180 Strip Loin, boneless. 1×1",24.39
+2026-06-06,beef_cut,"184 Loin, top butt, boneless",12.48
+2026-06-06,beef_cut,189A Tenderloin trimmed heavy,33.51
+2026-06-06,beef_cut,193 Flank Steak,22.19
+2026-06-06,beef_cut,"Primal cut, Arm Chuck",7.41
+2026-06-06,beef_cut,"Primal cut, Loin",11.26
+2026-06-06,beef_cut,"Primal cut, Rib",12.25
+2026-06-06,beef_cut,"Primal cut, Round",7.35
+2026-06-06,carcass,Beef Carcass,844.67
+2026-06-06,carcass,Pork Carcass,219.19
+2026-06-06,pork_cut,"Cheek Meat, trimmed N/A",2.31
+2026-06-06,pork_cut,"U40 Loin, trim 410",2.3
+2026-06-06,pork_cut,"U41 Tenderloin, 1.25 down 415",4.41
+2026-06-06,pork_cut,U42 Boston butt trim 406,3.68
+2026-06-06,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.64
+2026-06-06,pork_cut,"U48 Belly, skin-on, fresh 408",3.02
+2026-06-06,pork_cut,"U50 Picnic, smkr trm combo 405",1.96
+2026-06-06,pork_cut,U51 Neck Bones 421,0.7
+2026-06-06,pork_cut,"U54 Front Feet, Toes on 420",1.58
+2026-06-13,beef_cut,"112A Ribeye Roll, boneless, light",27.73
+2026-06-13,beef_cut,114 Shoulder clod,9.18
+2026-06-13,beef_cut,116A Chuck Roll neck-off,10.55
+2026-06-13,beef_cut,"120 Brisket, boneless",10.55
+2026-06-13,beef_cut,123A Short Rib,14.83
+2026-06-13,beef_cut,"167A Knuckle, peeled",10.36
+2026-06-13,beef_cut,168 Top Inside Round,9.34
+2026-06-13,beef_cut,170 Gooseneck Round 18-33,8.58
+2026-06-13,beef_cut,"180 Strip Loin, boneless. 1×1",24.62
+2026-06-13,beef_cut,"184 Loin, top butt, boneless",12.68
+2026-06-13,beef_cut,189A Tenderloin trimmed heavy,33.52
+2026-06-13,beef_cut,193 Flank Steak,22.26
+2026-06-13,beef_cut,"Primal cut, Arm Chuck",7.36
+2026-06-13,beef_cut,"Primal cut, Loin",11.15
+2026-06-13,beef_cut,"Primal cut, Rib",12.64
+2026-06-13,beef_cut,"Primal cut, Round",7.28
+2026-06-13,carcass,Beef Carcass,842.45
+2026-06-13,carcass,Pork Carcass,212.19
+2026-06-13,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",5.24
+2026-06-13,pork_cut,"Cheek Meat, trimmed N/A",2.3
+2026-06-13,pork_cut,"U40 Loin, trim 410",2.29
+2026-06-13,pork_cut,"U41 Tenderloin, 1.25 down 415",4.41
+2026-06-13,pork_cut,U42 Boston butt trim 406,3.01
+2026-06-13,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.91
+2026-06-13,pork_cut,"U48 Belly, skin-on, fresh 408",3.1
+2026-06-13,pork_cut,"U50 Picnic, smkr trm combo 405",2.32
+2026-06-13,pork_cut,U51 Neck Bones 421,1.0
+2026-06-13,pork_cut,"U54 Front Feet, Toes on 420",1.6
+2026-06-20,beef_cut,"112A Ribeye Roll, boneless, light",28.73
+2026-06-20,beef_cut,114 Shoulder clod,9.59
+2026-06-20,beef_cut,116A Chuck Roll neck-off,10.52
+2026-06-20,beef_cut,"120 Brisket, boneless",10.53
+2026-06-20,beef_cut,123A Short Rib,14.54
+2026-06-20,beef_cut,"167A Knuckle, peeled",10.4
+2026-06-20,beef_cut,168 Top Inside Round,9.38
+2026-06-20,beef_cut,170 Gooseneck Round 18-33,9.1
+2026-06-20,beef_cut,"180 Strip Loin, boneless. 1×1",24.41
+2026-06-20,beef_cut,"184 Loin, top butt, boneless",12.55
+2026-06-20,beef_cut,189A Tenderloin trimmed heavy,33.59
+2026-06-20,beef_cut,193 Flank Steak,22.4
+2026-06-20,beef_cut,"Primal cut, Arm Chuck",7.45
+2026-06-20,beef_cut,"Primal cut, Loin",11.16
+2026-06-20,beef_cut,"Primal cut, Rib",12.95
+2026-06-20,beef_cut,"Primal cut, Round",7.29
+2026-06-20,carcass,Beef Carcass,843.35
+2026-06-20,carcass,Pork Carcass,210.3
+2026-06-20,pork_cut,"Cheek Meat, trimmed N/A",2.3
+2026-06-20,pork_cut,"U40 Loin, trim 410",2.29
+2026-06-20,pork_cut,"U41 Tenderloin, 1.25 down 415",4.33
+2026-06-20,pork_cut,U42 Boston butt trim 406,2.97
+2026-06-20,pork_cut,U44 Sparerib. 25#/dn-lgt 416,3.77
+2026-06-20,pork_cut,"U46 Ham, bone in trimmed 401",1.82
+2026-06-20,pork_cut,"U48 Belly, skin-on, fresh 408",3.12
+2026-06-20,pork_cut,"U50 Picnic, smkr trm combo 405",2.34
+2026-06-20,pork_cut,U51 Neck Bones 421,0.93
+2026-06-20,pork_cut,"U54 Front Feet, Toes on 420",1.49
+2026-06-27,beef_cut,"112A Ribeye Roll, boneless, light",29.11
+2026-06-27,beef_cut,114 Shoulder clod,9.32
+2026-06-27,beef_cut,116A Chuck Roll neck-off,10.57
+2026-06-27,beef_cut,"120 Brisket, boneless",10.59
+2026-06-27,beef_cut,123A Short Rib,14.78
+2026-06-27,beef_cut,"160 Round, bone-in",9.78
+2026-06-27,beef_cut,"167A Knuckle, peeled",10.52
+2026-06-27,beef_cut,168 Top Inside Round,9.49
+2026-06-27,beef_cut,170 Gooseneck Round 18-33,8.69
+2026-06-27,beef_cut,"180 Strip Loin, boneless. 1×1",24.42
+2026-06-27,beef_cut,"184 Loin, top butt, boneless",12.54
+2026-06-27,beef_cut,189A Tenderloin trimmed heavy,33.62
+2026-06-27,beef_cut,193 Flank Steak,21.79
+2026-06-27,beef_cut,"Primal cut, Arm Chuck",7.46
+2026-06-27,beef_cut,"Primal cut, Loin",11.13
+2026-06-27,beef_cut,"Primal cut, Rib",13.06
+2026-06-27,beef_cut,"Primal cut, Round",7.34
+2026-06-27,carcass,Beef Carcass,852.76
+2026-06-27,carcass,Pork Carcass,209.35
+2026-06-27,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.21
+2026-06-27,pork_cut,"Cheek Meat, trimmed N/A",2.3
+2026-06-27,pork_cut,"U40 Loin, trim 410",2.33
+2026-06-27,pork_cut,"U41 Tenderloin, 1.25 down 415",4.25
+2026-06-27,pork_cut,U42 Boston butt trim 406,3.0
+2026-06-27,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.58
+2026-06-27,pork_cut,"U48 Belly, skin-on, fresh 408",3.36
+2026-06-27,pork_cut,"U50 Picnic, smkr trm combo 405",2.13
+2026-06-27,pork_cut,U51 Neck Bones 421,1.02
+2026-06-27,pork_cut,"U54 Front Feet, Toes on 420",1.61
+2026-07-04,beef_cut,"112A Ribeye Roll, boneless, light",28.63
+2026-07-04,beef_cut,114 Shoulder clod,9.35
+2026-07-04,beef_cut,116A Chuck Roll neck-off,10.46
+2026-07-04,beef_cut,"120 Brisket, boneless",10.56
+2026-07-04,beef_cut,123A Short Rib,15.0
+2026-07-04,beef_cut,"167A Knuckle, peeled",10.34
+2026-07-04,beef_cut,168 Top Inside Round,9.08
+2026-07-04,beef_cut,170 Gooseneck Round 18-33,8.46
+2026-07-04,beef_cut,"180 Strip Loin, boneless. 1×1",23.63
+2026-07-04,beef_cut,"184 Loin, top butt, boneless",12.29
+2026-07-04,beef_cut,189A Tenderloin trimmed heavy,33.46
+2026-07-04,beef_cut,193 Flank Steak,22.0
+2026-07-04,beef_cut,"Primal cut, Arm Chuck",7.39
+2026-07-04,beef_cut,"Primal cut, Loin",10.89
+2026-07-04,beef_cut,"Primal cut, Rib",12.76
+2026-07-04,beef_cut,"Primal cut, Round",7.28
+2026-07-04,carcass,Beef Carcass,844.95
+2026-07-04,carcass,Pork Carcass,211.71
+2026-07-04,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.12
+2026-07-04,pork_cut,"Cheek Meat, trimmed N/A",2.3
+2026-07-04,pork_cut,"U40 Loin, trim 410",2.29
+2026-07-04,pork_cut,"U41 Tenderloin, 1.25 down 415",4.23
+2026-07-04,pork_cut,U42 Boston butt trim 406,2.96
+2026-07-04,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.68
+2026-07-04,pork_cut,"U46 Ham, bone in trimmed 401",1.95
+2026-07-04,pork_cut,"U48 Belly, skin-on, fresh 408",3.21
+2026-07-04,pork_cut,"U50 Picnic, smkr trm combo 405",2.08
+2026-07-04,pork_cut,U51 Neck Bones 421,0.83
+2026-07-04,pork_cut,"U54 Front Feet, Toes on 420",1.68
+2026-07-11,beef_cut,"112A Ribeye Roll, boneless, light",27.48
+2026-07-11,beef_cut,114 Shoulder clod,9.14
+2026-07-11,beef_cut,116A Chuck Roll neck-off,10.34
+2026-07-11,beef_cut,"120 Brisket, boneless",10.15
+2026-07-11,beef_cut,123A Short Rib,15.21
+2026-07-11,beef_cut,"167A Knuckle, peeled",10.1
+2026-07-11,beef_cut,168 Top Inside Round,9.24
+2026-07-11,beef_cut,170 Gooseneck Round 18-33,9.0
+2026-07-11,beef_cut,"180 Strip Loin, boneless. 1×1",21.14
+2026-07-11,beef_cut,"184 Loin, top butt, boneless",12.0
+2026-07-11,beef_cut,189A Tenderloin trimmed heavy,33.22
+2026-07-11,beef_cut,193 Flank Steak,22.21
+2026-07-11,beef_cut,"Primal cut, Arm Chuck",7.35
+2026-07-11,beef_cut,"Primal cut, Loin",10.61
+2026-07-11,beef_cut,"Primal cut, Rib",12.33
+2026-07-11,beef_cut,"Primal cut, Round",7.14
+2026-07-11,carcass,Beef Carcass,830.76
+2026-07-11,carcass,Pork Carcass,216.68
+2026-07-11,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.07
+2026-07-11,pork_cut,"Cheek Meat, trimmed N/A",2.29
+2026-07-11,pork_cut,"U40 Loin, trim 410",2.26
+2026-07-11,pork_cut,"U41 Tenderloin, 1.25 down 415",4.28
+2026-07-11,pork_cut,U42 Boston butt trim 406,2.85
+2026-07-11,pork_cut,U44 Sparerib. 25#/dn-lgt 416,4.66
+2026-07-11,pork_cut,"U46 Ham, bone in trimmed 401",2.17
+2026-07-11,pork_cut,"U48 Belly, skin-on, fresh 408",3.58
+2026-07-11,pork_cut,"U50 Picnic, smkr trm combo 405",2.02
+2026-07-11,pork_cut,U51 Neck Bones 421,0.99
+2026-07-11,pork_cut,"U54 Front Feet, Toes on 420",1.66
+2026-07-18,beef_cut,"112A Ribeye Roll, boneless, light",27.34
+2026-07-18,beef_cut,114 Shoulder clod,8.66
+2026-07-18,beef_cut,116A Chuck Roll neck-off,10.04
+2026-07-18,beef_cut,"120 Brisket, boneless",10.06
+2026-07-18,beef_cut,123A Short Rib,15.03
+2026-07-18,beef_cut,"167A Knuckle, peeled",9.75
+2026-07-18,beef_cut,168 Top Inside Round,9.07
+2026-07-18,beef_cut,170 Gooseneck Round 18-33,8.13
+2026-07-18,beef_cut,"180 Strip Loin, boneless. 1×1",19.74
+2026-07-18,beef_cut,"184 Loin, top butt, boneless",11.75
+2026-07-18,beef_cut,189A Tenderloin trimmed heavy,33.15
+2026-07-18,beef_cut,193 Flank Steak,21.7
+2026-07-18,beef_cut,"Primal cut, Arm Chuck",7.1
+2026-07-18,beef_cut,"Primal cut, Loin",10.1
+2026-07-18,beef_cut,"Primal cut, Rib",12.05
+2026-07-18,beef_cut,"Primal cut, Round",6.99
+2026-07-18,carcass,Beef Carcass,798.73
+2026-07-18,carcass,Pork Carcass,224.86
+2026-07-18,pork_cut,"AI Backribs 2.0#/up 1 pc Vac, FZN 422",6.12
+2026-07-18,pork_cut,"Cheek Meat, trimmed N/A",2.29
+2026-07-18,pork_cut,"U40 Loin, trim 410",2.27
+2026-07-18,pork_cut,"U41 Tenderloin, 1.25 down 415",4.28
+2026-07-18,pork_cut,U42 Boston butt trim 406,2.76
+2026-07-18,pork_cut,"U46 Ham, bone in trimmed 401",2.3
+2026-07-18,pork_cut,"U48 Belly, skin-on, fresh 408",3.45
+2026-07-18,pork_cut,"U50 Picnic, smkr trm combo 405",1.97
+2026-07-18,pork_cut,U51 Neck Bones 421,1.01
+2026-07-18,pork_cut,"U54 Front Feet, Toes on 420",1.78

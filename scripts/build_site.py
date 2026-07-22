@@ -15,11 +15,14 @@ MERGED_CSV = "data/merged_weekly.csv"
 OUT_HTML = "index.html"
 
 # 차트에 노출할 육류 지표. key 는 CSV 컬럼명.
+# 라벨과 단위는 USMEF NEWSLINE PDF 로 확인했다(주간 32주 전량 소수점까지 일치).
+# 주의: price123a 는 필드 순서상 pricePig 옆에 있지만 실제로는 **소고기** 부위다.
+# PDF 의 소고기 부위 표에 123A Short Rib 로 실려 있다.
 MEAT_SERIES = [
-    {"key": "beef", "label": "소고기 종합"},
-    {"key": "beef_116", "label": "소고기 116A"},
-    {"key": "pork", "label": "돼지고기 종합"},
-    {"key": "pork_123a", "label": "돼지고기 123A"},
+    {"key": "beef", "label": "소고기 지육 ($/100kg)"},
+    {"key": "beef_116", "label": "소고기 116A Chuck Roll ($/kg)"},
+    {"key": "pork", "label": "돼지 지육 ($/100kg)"},
+    {"key": "pork_123a", "label": "소고기 123A Short Rib ($/kg)"},
 ]
 
 STOCK_LABEL = "TXRH"

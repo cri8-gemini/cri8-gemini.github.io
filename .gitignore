@@ -4,3 +4,6 @@ __pycache__/
 # 생성물 — Actions 가 빌드해 Pages 아티팩트로 배포한다
 index.html
 _site/
+
+# PDF 원본 캐시. 20MB 넘고 언제든 다시 받을 수 있다 (CSV 만 커밋한다)
+data/newsline_pdf/
