@@ -110,8 +110,11 @@ def main():
     all_rows.sort(key=lambda r: r["date"])
 
     columns = ["date", *FIELDS.values()]
+    # lineterminator 를 LF 로 고정한다. csv 모듈 기본값이 CRLF 라 윈도우 로컬과
+    # 리눅스 러너가 서로 다른 바이트를 만들어내고, 값이 그대로여도 매일 전체
+    # 파일이 바뀐 diff 가 커밋된다.
     with open(args.out, "w", newline="", encoding="utf-8") as fp:
-        writer = csv.DictWriter(fp, fieldnames=columns)
+        writer = csv.DictWriter(fp, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         writer.writerows(all_rows)
 

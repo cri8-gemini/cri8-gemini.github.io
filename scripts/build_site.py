@@ -85,7 +85,7 @@ def merge():
 def write_merged_csv(rows):
     columns = ["week", "date", "txrh", *[s["key"] for s in MEAT_SERIES]]
     with open(MERGED_CSV, "w", newline="", encoding="utf-8") as fp:
-        writer = csv.writer(fp)
+        writer = csv.writer(fp, lineterminator="\n")  # LF 고정 — collect_usmef.py 참고
         writer.writerow(columns)
         for row in rows:
             writer.writerow([row.get(c) if row.get(c) is not None else "" for c in columns])

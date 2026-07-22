@@ -88,7 +88,9 @@ def main():
         return 1
 
     with open(args.out, "w", newline="", encoding="utf-8") as fp:
-        writer = csv.DictWriter(fp, fieldnames=["date", "close", "adj_close", "volume"])
+        # LF 고정 — 이유는 collect_usmef.py 참고
+        writer = csv.DictWriter(fp, fieldnames=["date", "close", "adj_close", "volume"],
+                                lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
