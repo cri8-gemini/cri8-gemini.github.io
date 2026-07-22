@@ -239,6 +239,22 @@
     <p class="card-note" id="lag-read" style="margin-top:10px"></p>
   </div>
 
+  <div class="card" id="quarter-card" style="margin-top:16px">
+    <h2 class="card-title" id="q-title">분기 단위 비교</h2>
+    <p class="card-note" id="q-note"></p>
+
+    <div class="group" style="margin-bottom:14px">
+      <span class="group-label" id="lbl-qlag">주가 수익률 시점</span>
+      <div class="chips" role="group" aria-labelledby="lbl-qlag" id="qlag-chips"></div>
+    </div>
+
+    <div class="plot" id="q-plot">
+      <svg id="q-svg" role="img" aria-labelledby="q-title"></svg>
+      <div class="tooltip" id="q-tooltip" role="status" aria-live="polite"></div>
+    </div>
+    <p class="card-note" id="q-read" style="margin-top:10px"></p>
+  </div>
+
   <footer>
     <p id="foot-meta"></p>
     <p>
@@ -270,6 +286,7 @@ const state = {
   // 육류 선이 바닥에 눌린다. 로그 축에서는 세로 거리 = 변화율이라 나란히 읽힌다.
   scale: "log",
   lag: 0,
+  qlag: "1", // 분기 카드 기본값: 원가가 다음 분기 주가에 반영된다는 가설
   view: "chart",
 };
 
@@ -771,6 +788,197 @@ function lagHover(clientX) {
   tip.classList.add("on");
 }
 
+/* ---------- 분기 단위 ---------- */
+
+// 원가는 서서히 쌓여 분기 마진에 반영되고, 주가는 실적 발표 즈음 움직인다.
+// 그 경로라면 주간 변화율로는 안 잡히므로 분기로 묶어 다시 본다.
+//
+// 이 카드만 기간 필터를 따르지 않고 항상 전체 구간을 쓴다. 1년이면 분기가
+// 4개뿐이라 상관계수를 낼 수 없다.
+const QLAGS = [
+  { id: "0", label: "같은 분기", q: 0 },
+  { id: "1", label: "다음 분기", q: 1 },
+  { id: "2", label: "2분기 뒤", q: 2 },
+];
+const MIN_QUARTERS = 8;
+
+const quarterOf = (iso) => {
+  const d = new Date(iso);
+  return `${d.getUTCFullYear()} Q${Math.floor(d.getUTCMonth() / 3) + 1}`;
+};
+
+// 분기별로 육류는 평균, 주가는 분기 마지막 종가를 쓴다.
+// 원가는 그 기간 내내 부담한 값이라 평균이 맞고, 주가는 시점 값이라 종가가 맞다.
+function quarterly() {
+  const meatIdx = COL[state.meat];
+  const acc = new Map();
+  for (const row of DATA.rows) {
+    const q = quarterOf(row[0]);
+    if (!acc.has(q)) acc.set(q, { q, meatSum: 0, meatN: 0, lastStock: null });
+    const e = acc.get(q);
+    if (row[meatIdx] != null) { e.meatSum += row[meatIdx]; e.meatN++; }
+    if (row[COL.txrh] != null) e.lastStock = row[COL.txrh];
+  }
+  return [...acc.values()]
+    .map((e) => ({ q: e.q, meat: e.meatN ? e.meatSum / e.meatN : null, stock: e.lastStock }))
+    .filter((e) => e.meat != null && e.stock != null);
+}
+
+// x = 그 분기의 원가 변화율, y = qlag 분기 뒤의 주가 수익률
+function quarterPairs(qlag) {
+  const qs = quarterly();
+  const out = [];
+  for (let i = 1; i < qs.length; i++) {
+    const j = i + qlag;
+    if (j < 1 || j >= qs.length) continue;
+    out.push({
+      costQ: qs[i].q,
+      retQ: qs[j].q,
+      x: qs[i].meat / qs[i - 1].meat - 1,
+      y: qs[j].stock / qs[j - 1].stock - 1,
+    });
+  }
+  return out;
+}
+
+const Q_H = 330;
+const Q_PAD = { top: 16, right: 18, bottom: 46, left: 68 };
+
+function renderQuarter() {
+  const qlag = QLAGS.find((l) => l.id === state.qlag).q;
+  const pts = quarterPairs(qlag);
+  const svg = el("q-svg");
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  el("q-title").textContent =
+    `${meatMeta().label} 분기 변화 vs ${DATA.stockLabel} 분기 수익률`;
+
+  if (pts.length < MIN_QUARTERS) {
+    el("q-note").textContent = `분기가 ${MIN_QUARTERS}개 미만이라 계산할 수 없습니다.`;
+    el("q-read").textContent = "";
+    return;
+  }
+
+  const width = el("q-plot").clientWidth || 900;
+  svg.setAttribute("viewBox", `0 0 ${width} ${Q_H}`);
+  svg.setAttribute("height", Q_H);
+  const innerW = width - Q_PAD.left - Q_PAD.right;
+  const innerH = Q_H - Q_PAD.top - Q_PAD.bottom;
+
+  // 0 을 가운데 두고 좌우·상하 대칭으로 잡는다. 부호가 뜻을 갖는 그림이라
+  // 축이 한쪽으로 치우치면 4분면을 잘못 읽게 된다.
+  const xb = Math.max(...pts.map((p) => Math.abs(p.x))) * 1.1 || 0.1;
+  const yb = Math.max(...pts.map((p) => Math.abs(p.y))) * 1.1 || 0.1;
+  const sx = (v) => Q_PAD.left + ((v + xb) / (2 * xb)) * innerW;
+  const sy = (v) => Q_PAD.top + innerH - ((v + yb) / (2 * yb)) * innerH;
+
+  const tick = (b) => {
+    const step = b > 0.4 ? 0.2 : b > 0.2 ? 0.1 : 0.05;
+    const out = [];
+    for (let v = -Math.floor(b / step) * step; v <= b; v += step) out.push(Math.abs(v) < 1e-9 ? 0 : v);
+    return out;
+  };
+
+  tick(yb).forEach((v) => {
+    svg.appendChild(node("line", {
+      x1: Q_PAD.left, x2: Q_PAD.left + innerW, y1: sy(v), y2: sy(v),
+      stroke: v === 0 ? "var(--axis)" : "var(--grid)", "stroke-width": 1,
+    }));
+    svg.appendChild(node("text", {
+      x: Q_PAD.left - 9, y: sy(v) + 4, "text-anchor": "end",
+      fill: "var(--text-muted)", "font-size": 11, "font-variant-numeric": "tabular-nums",
+    }, pct(v)));
+  });
+
+  tick(xb).forEach((v) => {
+    svg.appendChild(node("line", {
+      x1: sx(v), x2: sx(v), y1: Q_PAD.top, y2: Q_PAD.top + innerH,
+      stroke: v === 0 ? "var(--axis)" : "var(--grid)", "stroke-width": 1,
+    }));
+    svg.appendChild(node("text", {
+      x: sx(v), y: Q_H - 28, "text-anchor": "middle",
+      fill: "var(--text-muted)", "font-size": 11, "font-variant-numeric": "tabular-nums",
+    }, pct(v)));
+  });
+
+  svg.appendChild(node("text", {
+    x: Q_PAD.left + innerW / 2, y: Q_H - 8, "text-anchor": "middle",
+    fill: "var(--text-secondary)", "font-size": 11.5,
+  }, `가로: ${meatMeta().label} 분기 변화율`));
+  svg.appendChild(node("text", {
+    x: 13, y: Q_PAD.top + innerH / 2, "text-anchor": "middle",
+    fill: "var(--text-secondary)", "font-size": 11.5,
+    transform: `rotate(-90 13 ${Q_PAD.top + innerH / 2})`,
+  }, `세로: ${DATA.stockLabel} 분기 수익률`));
+
+  const stat = pearson(pts.map((p) => p.x), pts.map((p) => p.y));
+  const band = noiseBand(stat.n);
+  const meaningful = stat.r != null && Math.abs(stat.r) >= band;
+
+  // 추세선은 관계가 잡음 범위를 벗어났을 때만 그린다. 흩어진 점 위에 선을
+  // 얹으면 없는 관계가 있어 보인다.
+  if (meaningful) {
+    const mx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+    const my = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+    let num = 0, den = 0;
+    pts.forEach((p) => { num += (p.x - mx) * (p.y - my); den += (p.x - mx) ** 2; });
+    const slope = num / den;
+    svg.appendChild(node("line", {
+      x1: sx(-xb), y1: sy(my + slope * (-xb - mx)),
+      x2: sx(xb), y2: sy(my + slope * (xb - mx)),
+      stroke: "var(--text-muted)", "stroke-width": 1.5, "stroke-dasharray": "5 4",
+    }));
+  }
+
+  pts.forEach((p) => {
+    const dot = node("circle", {
+      cx: sx(p.x), cy: sy(p.y), r: 4.5,
+      fill: "var(--series-stock)", stroke: "var(--surface-1)", "stroke-width": 2,
+      "data-cost": p.costQ, "data-ret": p.retQ,
+      "data-x": p.x, "data-y": p.y,
+    });
+    svg.appendChild(dot);
+  });
+
+  el("q-note").textContent =
+    `전체 구간 ${pts.length}개 분기 · 원가는 분기 평균, 주가는 분기말 종가 기준 · `
+    + `기간 필터와 무관하게 항상 전체를 봅니다`;
+
+  el("q-read").textContent =
+    `상관계수 ${fmt(stat.r, 2)} (잡음 범위 ±${fmt(band, 2)}). `
+    + (meaningful
+      ? `범위를 벗어났습니다. 점선은 추세선입니다 — 다만 분기 ${stat.n}개는 적은 표본이라 몇 개 분기가 결과를 좌우할 수 있습니다.`
+      : `범위 안이라 관계가 있다고 보기 어렵고, 추세선도 그리지 않았습니다.`);
+}
+
+function qHover(clientX, clientY) {
+  const svg = el("q-svg");
+  const dots = [...svg.querySelectorAll("circle[data-cost]")];
+  if (!dots.length) return;
+
+  const rect = svg.getBoundingClientRect();
+  const ratio = svg.viewBox.baseVal.width / rect.width;
+  const x = (clientX - rect.left) * ratio, y = (clientY - rect.top) * ratio;
+
+  let best = null, bestDist = Infinity;
+  dots.forEach((d) => {
+    const dist = Math.hypot(+d.getAttribute("cx") - x, +d.getAttribute("cy") - y);
+    if (dist < bestDist) { bestDist = dist; best = d; }
+  });
+  if (bestDist > 40) { el("q-tooltip").classList.remove("on"); return; }
+
+  const tip = el("q-tooltip");
+  tip.innerHTML = `<div class="tt-date">${best.dataset.cost} 원가 → ${best.dataset.ret} 주가</div>
+    <div class="tt-row"><span>${meatMeta().label}</span><span class="tt-val">${pct(+best.dataset.x)}</span></div>
+    <div class="tt-row"><span>${DATA.stockLabel}</span><span class="tt-val">${pct(+best.dataset.y)}</span></div>`;
+
+  const px = (+best.getAttribute("cx") / svg.viewBox.baseVal.width) * rect.width;
+  const py = (+best.getAttribute("cy") / svg.viewBox.baseVal.height) * rect.height;
+  tip.style.left = Math.min(Math.max(px, 92), el("q-plot").clientWidth - 92) + "px";
+  tip.style.top = Math.max(py - 12, 4) + "px";
+  tip.classList.add("on");
+}
+
 /* ---------- 표 ---------- */
 
 function renderTable(points) {
@@ -872,6 +1080,9 @@ function render() {
 
   if (state.view === "chart") renderChart(points); else renderTable(points);
   renderLag();
+
+  chips("qlag-chips", QLAGS, state.qlag, (id) => { state.qlag = id; renderQuarter(); });
+  renderQuarter();
 }
 
 /* ---------- 부트 ---------- */
@@ -887,6 +1098,10 @@ const lagPlot = el("lag-plot");
 lagPlot.addEventListener("pointermove", (e) => lagHover(e.clientX));
 lagPlot.addEventListener("pointerleave", () => el("lag-tooltip").classList.remove("on"));
 
+const qPlot = el("q-plot");
+qPlot.addEventListener("pointermove", (e) => qHover(e.clientX, e.clientY));
+qPlot.addEventListener("pointerleave", () => el("q-tooltip").classList.remove("on"));
+
 let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
@@ -894,6 +1109,7 @@ window.addEventListener("resize", () => {
     if (!current.points.length) return;
     if (state.view === "chart") renderChart(current.points);
     renderLag();
+    renderQuarter();
   }, 120);
 });
 
