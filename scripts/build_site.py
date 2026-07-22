@@ -13,6 +13,7 @@ USMEF_CSV = "data/usmef_weekly.csv"
 STOCK_CSV = "data/stocks/TXRH.csv"
 MERGED_CSV = "data/merged_weekly.csv"
 STATS_CSV = "data/newsline_stats.csv"
+CUTS_CSV = "data/newsline_cuts.csv"
 OUT_HTML = "index.html"
 
 # 차트에서 TXRH 와 겹쳐 볼 지표. key 는 병합 CSV 의 컬럼명, group 은 버튼 줄.
@@ -29,6 +30,12 @@ MEAT_SERIES = [
     {"key": "pork_cutout", "label": "돼지 컷아웃", "group": "가격", "unit": "$/lb"},
     {"key": "beef_live_price", "label": "생우", "group": "가격", "unit": "$/100lb"},
     {"key": "pork_live_price", "label": "생돈", "group": "가격", "unit": "$/100lb"},
+    {"key": "cut_112a", "label": "립아이", "group": "부위", "unit": "$/kg"},
+    {"key": "cut_180", "label": "스트립로인", "group": "부위", "unit": "$/kg"},
+    {"key": "cut_184", "label": "탑버트(설로인)", "group": "부위", "unit": "$/kg"},
+    {"key": "cut_189a", "label": "텐더로인(필레)", "group": "부위", "unit": "$/kg"},
+    {"key": "cut_120", "label": "브리스킷", "group": "부위", "unit": "$/kg"},
+    {"key": "cut_193", "label": "플랭크", "group": "부위", "unit": "$/kg"},
     {"key": "beef_slaughter", "label": "소 도축두수", "group": "수급", "unit": "두"},
     {"key": "pork_slaughter", "label": "돼지 도축두수", "group": "수급", "unit": "두"},
     {"key": "beef_production", "label": "소 생산량", "group": "수급", "unit": "lb"},
@@ -39,6 +46,17 @@ MEAT_SERIES = [
 
 # newsline_stats.csv 에서 위 컬럼으로 끌어올 지표
 STAT_KEYS = ["cutout", "live_price", "slaughter", "production", "export_korea"]
+
+# newsline_cuts.csv 의 품목명 -> 위 컬럼. TXRH 메뉴에 실제로 오르는 부위들이다.
+# 116A·123A 는 JSON API 에도 있어 이미 '가격' 줄에 들어가 있으므로 뺀다.
+CUT_ITEMS = {
+    "112A Ribeye Roll, boneless, light": "cut_112a",
+    "180 Strip Loin, boneless. 1x1": "cut_180",
+    "184 Loin, top butt, boneless": "cut_184",
+    "189A Tenderloin trimmed heavy": "cut_189a",
+    "120 Brisket, boneless": "cut_120",
+    "193 Flank Steak": "cut_193",
+}
 
 STOCK_LABEL = "TXRH"
 
@@ -92,6 +110,9 @@ def merge():
         entry["txrh"] = to_float(row.get("adj_close"))
         entry["txrh_close"] = to_float(row.get("close"))
 
+    for key, values in cuts_by_week().items():
+        weeks.setdefault(key, {"date": None, "stock_date": None}).update(values)
+
     for key, values in stats_by_week().items():
         weeks.setdefault(key, {"date": None, "stock_date": None}).update(values)
 
@@ -111,6 +132,49 @@ def write_merged_csv(rows):
         writer.writerow(columns)
         for row in rows:
             writer.writerow([row.get(c) if row.get(c) is not None else "" for c in columns])
+
+
+# 원본 PDF 에 자릿수가 빠진 오타가 있다. 예: 2022-12-24 립아이가 2.45 로 찍혀
+# 있는데 같은 행의 앞뒤 주는 24.47 / 27.32 다. 같은 주를 싣는 네 개 호가 모두
+# 같은 오타라 이웃 호로도 회수되지 않는다.
+#
+# 진짜 급등락을 지우지 않도록 조건을 좁힌다 — 한 점만 2배 이상 튀고, 그 앞뒤가
+# 서로 15% 안쪽으로 붙어 있을 때만 버린다. 코로나 폭락처럼 여러 주에 걸친
+# 움직임이나 50% 수준의 변동은 걸리지 않는다.
+OUTLIER_RATIO = 2.0
+NEIGHBOUR_GAP = 0.15
+
+
+def drop_digit_typos(series, label):
+    """{주차: 값} 에서 자릿수 오타로 보이는 점을 뺀다."""
+    weeks = sorted(series)
+    for i in range(1, len(weeks) - 1):
+        prev, current, nxt = (series[weeks[j]] for j in (i - 1, i, i + 1))
+        if not (prev and current and nxt):
+            continue
+        ratios = (current / prev, current / nxt)
+        spiked = all(r >= OUTLIER_RATIO or r <= 1 / OUTLIER_RATIO for r in ratios)
+        if spiked and abs(prev / nxt - 1) < NEIGHBOUR_GAP:
+            print(f"  ! 원본 오타로 보여 제외: {label} {weeks[i]} "
+                  f"{current:g} (앞 {prev:g} / 뒤 {nxt:g})")
+            series[weeks[i]] = None
+    return series
+
+
+def cuts_by_week():
+    """newsline_cuts.csv 에서 부위별 가격을 {ISO주차: {컬럼: 값}} 으로."""
+    by_item = {}
+    for row in read_csv(CUTS_CSV):
+        column = CUT_ITEMS.get(row["item"])
+        if column:
+            by_item.setdefault(column, {})[iso_week(row["week"])] = to_float(row["value"])
+
+    out = {}
+    for column, series in by_item.items():
+        for week, value in drop_digit_typos(series, column).items():
+            if value is not None:
+                out.setdefault(week, {})[column] = value
+    return out
 
 
 def stats_by_week():

@@ -178,8 +178,12 @@
       <div class="chips" role="group" aria-labelledby="lbl-meat" id="meat-chips"></div>
     </div>
     <div class="group">
-      <span class="group-label" id="lbl-meat2">수급 지표</span>
+      <span class="group-label" id="lbl-meat2">부위 (TXRH 메뉴)</span>
       <div class="chips" role="group" aria-labelledby="lbl-meat2" id="meat-chips2"></div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-meat3">수급 지표</span>
+      <div class="chips" role="group" aria-labelledby="lbl-meat3" id="meat-chips3"></div>
     </div>
     <div class="group">
       <span class="group-label" id="lbl-lag">시차</span>
@@ -305,10 +309,14 @@ const lagChipLabel = (lag) => (lag === 0 ? "동시" : `${lag > 0 ? "+" : ""}${la
 /* ---------- 데이터 ---------- */
 
 // 시차 k(주) = 육류가 k 주 먼저 움직인 것을 주가와 맞춰 본다.
-// 음수면 반대로 주가가 먼저다. 0 이면 같은 주.
-// ±8 주까지만 본다. 기본 구간이 1년(52주)이라 13·26주 시차는 겹치는 구간이
-// 39주·26주로 줄어 상관계수가 크게 흔들린다.
-const LAGS = [-8, -4, 0, 4, 8];
+//
+// 음수 시차(주가가 먼저)는 뺐다. 원가가 주가를 끌고 간다는 가설과 방향이
+// 반대라 볼 이유가 없고, 실제로 음수 쪽에서 크게 나오던 값들은 시장 전체(SPY)
+// 에서 더 강하게 나와 원가와 무관한 동조로 확인됐다.
+//
+// 8주까지만 본다. 기본 구간이 1년(52주)이라 13·26주는 겹치는 구간이 39·26주로
+// 줄어 상관계수가 크게 흔들린다.
+const LAGS = [0, 4, 8];
 const MIN_OBS = 12; // 관측치가 이보다 적으면 상관계수를 신뢰할 수 없다
 
 const WEEK_MS = 7 * 86400000;
@@ -745,12 +753,9 @@ function renderLag() {
   });
 
   svg.appendChild(node("text", {
-    x: LAG_PAD.left, y: LAG_H - 2, fill: "var(--text-muted)", "font-size": 10.5,
-  }, "◀ 주가가 먼저"));
-  svg.appendChild(node("text", {
     x: LAG_PAD.left + innerW, y: LAG_H - 2, "text-anchor": "end",
     fill: "var(--text-muted)", "font-size": 10.5,
-  }, "육류가 먼저 ▶"));
+  }, "육류가 먼저 움직인 주 수 ▶"));
 
   el("lag-note").textContent =
     "막대를 누르면 위 꺾은선에 그 시차가 적용됩니다 · "
@@ -1052,7 +1057,8 @@ function render() {
   const byGroup = (name) => DATA.meat.filter((m) => m.group === name)
     .map((m) => ({ id: m.key, label: m.label }));
   chips("meat-chips", byGroup("가격"), state.meat, (id) => { state.meat = id; render(); });
-  chips("meat-chips2", byGroup("수급"), state.meat, (id) => { state.meat = id; render(); });
+  chips("meat-chips2", byGroup("부위"), state.meat, (id) => { state.meat = id; render(); });
+  chips("meat-chips3", byGroup("수급"), state.meat, (id) => { state.meat = id; render(); });
   chips("lag-chips", LAGS.map((l) => ({ id: String(l), label: lagChipLabel(l) })), String(state.lag),
     (id) => { state.lag = +id; render(); });
   chips("scale-chips", [{ id: "log", label: "로그" }, { id: "linear", label: "선형" }], state.scale,
