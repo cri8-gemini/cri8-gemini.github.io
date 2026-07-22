@@ -1,4 +1,4 @@
-name: 데이터 갱신
+name: 데이터 갱신 및 배포
 
 on:
   # 06:00 KST. 육류 시세는 주 1회 갱신이지만 매일 확인해도 비용이 없고,
@@ -13,15 +13,20 @@ on:
       - ".github/workflows/update.yml"
 
 permissions:
-  contents: write
+  contents: write   # data/ 커밋
+  pages: write      # Pages 배포
+  id-token: write   # deploy-pages 인증
 
 concurrency:
-  group: update-data
+  group: pages
   cancel-in-progress: false
 
 jobs:
-  update:
+  build-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -36,20 +41,30 @@ jobs:
       - name: TXRH 주가 수집
         run: python scripts/collect_txrh.py
 
-      - name: 변경분 확인 후 빌드·커밋
+      # 저장소에는 데이터만 커밋한다. index.html 은 생성물이라 커밋하면 로컬
+      # 작업분과 충돌한다. 배포는 아래에서 아티팩트로 직접 올린다.
+      - name: 데이터 변경분 커밋
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data
-
-          # 데이터가 그대로면 여기서 끝낸다. index.html 은 매번 수집 시각이
-          # 박혀서 항상 달라지므로, 데이터 변경을 기준으로 판단해야 한다.
           if git diff --staged --quiet; then
             echo "데이터 변경 없음 — 커밋 생략"
-            exit 0
+          else
+            git commit -m "데이터 갱신 $(date -u +%Y-%m-%d)"
+            git push
           fi
 
+      - name: 사이트 빌드
+        run: |
           python scripts/build_site.py
-          git add index.html
-          git commit -m "데이터 갱신 $(date -u +%Y-%m-%d)"
-          git push
+          mkdir -p _site
+          cp index.html _site/
+          cp -r data _site/data   # CSV 를 사이트에서도 내려받을 수 있게 둔다
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
