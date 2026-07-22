@@ -97,7 +97,7 @@
   }
   .chip:focus-visible { outline: 2px solid var(--series-stock); outline-offset: 2px; }
 
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
   .tile {
     background: var(--surface-1); border: 1px solid var(--border);
     border-radius: 10px; padding: 14px 16px;
@@ -155,6 +155,7 @@
     .viz-root { padding: 24px 14px 40px; }
     .stats { grid-template-columns: 1fr; }
     .tile-value { font-size: 22px; }
+    .stats { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -230,6 +231,11 @@
       <div class="tile-label" id="s3-label">주간 변화율 상관계수</div>
       <div class="tile-value" id="s3-value">—</div>
       <div class="tile-note" id="s3-note"></div>
+    </div>
+    <div class="tile">
+      <div class="tile-label" id="s4-label">방향 일치율</div>
+      <div class="tile-value" id="s4-value">—</div>
+      <div class="tile-note" id="s4-note"></div>
     </div>
   </div>
 
@@ -314,8 +320,8 @@ const state = {
   // 두 계열의 상승폭 차이가 워낙 커서(21년 기준 16배 vs 1.2배) 선형 축에서는
   // 육류 선이 바닥에 눌린다. 로그 축에서는 세로 거리 = 변화율이라 나란히 읽힌다.
   scale: "log",
-  lag: 0,
-  horizon: "13",
+  lag: 4,
+  horizon: "1",
   qlag: "1", // 분기 카드 기본값: 원가가 다음 분기 주가에 반영된다는 가설
   view: "chart",
 };
@@ -448,6 +454,26 @@ function lagCorrelations() {
     const c = correlation(rows);
     return c ? { lag, ...c } : { lag, r: null, n: 0 };
   }).filter((d) => d.r != null && d.n >= MIN_OBS);
+}
+
+// 두 값이 같은 방향으로 움직인 주의 비율. 상관계수보다 직관적이다 —
+// "몇 %의 주에서 같이 갔나" 를 그대로 센다. 인과를 따지지 않고 숫자만 본다.
+// 기준선은 50%(동전던지기)이고, 전체 1200쌍의 중앙값이 52.6% 다.
+function directionAgreement(rows) {
+  const H = horizonWeeks();
+  const byWeek = new Map(rows.map((r) => [r.w, r]));
+  let same = 0, opposite = 0;
+  for (const row of rows) {
+    const past = byWeek.get(row.w - H);
+    if (!past || !past.rawStock || !past.rawMeat) continue;
+    const ds = row.rawStock - past.rawStock;
+    const dm = row.rawMeat - past.rawMeat;
+    if (ds === 0 || dm === 0) continue;
+    if ((ds > 0) === (dm > 0)) same++; else opposite++;
+  }
+  const n = same + opposite;
+  if (n < 20) return null;
+  return { same, opposite, n, rate: Math.max(same, opposite) / n, aligned: same >= opposite };
 }
 
 // 관측치가 n 개일 때 우연히 나올 수 있는 상관계수의 대략적 크기.
@@ -1067,6 +1093,18 @@ function renderStats(points) {
   el("s2-label").textContent = meatMeta().label + " 변화";
   el("s2-value").textContent = pct(last.rawMeat / first.rawMeat - 1);
   el("s2-note").textContent = `${fmt(first.rawMeat)} → ${fmt(last.rawMeat)}`;
+
+  const agree = directionAgreement(points);
+  if (agree) {
+    el("s4-label").textContent = agree.aligned ? "원가↑ → 주가↑ 비율" : "원가↑ → 주가↓ 비율";
+    el("s4-value").textContent = fmt(agree.rate * 100, 1) + "%";
+    el("s4-note").textContent =
+      `${agree.aligned ? agree.same : agree.opposite}/${agree.n}주 · 동전던지기는 50%`;
+  } else {
+    el("s4-label").textContent = "방향 일치율";
+    el("s4-value").textContent = "—";
+    el("s4-note").textContent = "구간이 너무 짧습니다";
+  }
 
   const corr = correlation(points);
   el("s3-value").textContent = corr ? fmt(corr.r, 2) : "—";
