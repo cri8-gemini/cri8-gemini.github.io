@@ -31,9 +31,13 @@ PDF_URL = "https://usmef.co.kr/ebook/newsline/{year}/{key}/{key}.pdf"
 CACHE = "data/newsline_pdf"
 OUT = "data/newsline_cuts.csv"
 OUT_STATS = "data/newsline_stats.csv"
+OUT_ISSUES = "data/newsline_issues.csv"
 
 # 안내 PDF 가 3KB 안팎이라 넉넉히 잡는다.
 MIN_PDF_BYTES = 50_000
+
+LATE_UPLOAD_DAYS = 21   # 없다고 확인된 최근 날짜를 다시 찔러보는 기간
+RETRY_DAYS = 90         # 이미지 PDF 였던 호를 다시 받아 보는 기간
 
 DATE_TOKEN = re.compile(r"^\d{1,2}/\d{1,2}$")
 NUMBER = re.compile(r"^-?[\d,]+\.?\d*$")
@@ -222,55 +226,120 @@ def parse_pdf(path, issue_date):
     return records, stats
 
 
+# 값 표기를 한 곳에서 통일한다. 안 그러면 기존 CSV(830.76)와 새로 만든 값
+# (465000000.0)의 표기가 갈려, 내용이 같아도 매번 바뀐 diff 가 커밋된다.
+def fmt(value):
+    return f"{float(value):.10g}"
+
+
+def load_rows(path, keys):
+    """기존 CSV 를 (키 -> 행) 으로 읽는다. 증분 갱신은 여기에 덮어쓴다."""
+    if not os.path.exists(path):
+        return {}
+    with open(path, newline="", encoding="utf-8") as fp:
+        return {tuple(r[k] for k in keys): r for r in csv.DictReader(fp)}
+
+
+def write_rows(path, rows, fields, keys):
+    ordered = sorted(rows.values(), key=lambda r: tuple(r[k] for k in keys))
+    with open(path, "w", newline="", encoding="utf-8") as fp:
+        writer = csv.DictWriter(fp, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(ordered)
+    return ordered
+
+
+def scan_dates(manifest, today, year, rebuild):
+    """이번 실행에서 찔러볼 발행일 목록.
+
+    한 호에 5주치가 실리므로 최신 호만 꾸준히 받아도 직전 4주가 매번 다시 들어온다.
+    그래서 전체를 다시 받을 필요가 없고, 마지막으로 찾은 호 다음 날부터만 보면 된다.
+    """
+    if rebuild:
+        return [dt.date(year, 1, 1) + dt.timedelta(i)
+                for i in range((min(dt.date(year, 12, 31), today) - dt.date(year, 1, 1)).days + 1)]
+
+    found = sorted(d for d, r in manifest.items() if r["found"] == "1")
+    start = dt.date.fromisoformat(found[-1]) + dt.timedelta(1) if found else dt.date(year, 1, 1)
+
+    candidates = []
+    date = start
+    while date <= today:
+        row = manifest.get(date.isoformat())
+        # 없다고 확인된 날짜는 다시 안 찔러본다. 다만 최근 것은 늦게 올라올 수
+        # 있으니 3주까지는 다시 본다.
+        if not row or row["found"] == "1" or (today - date).days <= LATE_UPLOAD_DAYS:
+            candidates.append(date)
+        date += dt.timedelta(1)
+
+    # 글자가 벡터라 못 읽었던 호는 텍스트본으로 다시 올라올 수 있다.
+    for key, row in manifest.items():
+        date = dt.date.fromisoformat(key)
+        if row["found"] == "1" and row["parsed"] == "0" and (today - date).days <= RETRY_DAYS:
+            candidates.append(date)
+
+    return sorted(set(candidates))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--year", type=int, default=dt.date.today().year)
+    parser.add_argument("--rebuild", action="store_true",
+                        help="해당 연도를 처음부터 다시 받아 파싱한다 (파서를 고쳤을 때)")
     parser.add_argument("-o", "--out", default=OUT)
     args = parser.parse_args()
 
     os.makedirs(CACHE, exist_ok=True)
-    start, end = dt.date(args.year, 1, 1), min(dt.date(args.year, 12, 31), dt.date.today())
+    today = dt.date.today()
 
-    issues, records, stats = [], [], []
-    date = start
-    while date <= end:
+    manifest = load_rows(OUT_ISSUES, ["issue"])
+    manifest = {k[0]: v for k, v in manifest.items()}
+    cuts = {} if args.rebuild else load_rows(args.out, ["week", "kind", "item"])
+    stats = {} if args.rebuild else load_rows(OUT_STATS, ["week", "species", "metric"])
+
+    targets = scan_dates(manifest, today, args.year, args.rebuild)
+    print(f"탐색 대상 {len(targets)}일"
+          + (f" ({targets[0]} ~ {targets[-1]})" if targets else ""))
+
+    new_issues = 0
+    for date in targets:
         key = date.strftime("%Y%m%d")
         path = os.path.join(CACHE, key + ".pdf")
-        if fetch(args.year, key, path):
-            issues.append(key)
-            got, got_stats = parse_pdf(path, date)
-            print(f"{key}: 가격 {len(got)}건 / 지표 {len(got_stats)}건"
-                  + ("" if got else "  (텍스트 없음 — 건너뜀)"))
-            records.extend(got)
-            stats.extend(got_stats)
-            time.sleep(0.2)
-        date += dt.timedelta(1)
+        # URL 경로의 연도는 --year 가 아니라 그 날짜 자신의 연도여야 한다.
+        # 연말을 넘어가면 탐색 구간이 다음 해로 이어지기 때문.
+        if not fetch(date.year, key, path):
+            manifest[date.isoformat()] = {"issue": date.isoformat(), "found": "0",
+                                          "bytes": "0", "parsed": "0"}
+            continue
 
-    # 같은 주가 여러 호에 실린다. 값이 갈리면 나중 호를 믿는다(정정 반영).
-    merged = {}
-    for r in records:
-        merged[(r["week"], r["kind"], r["item"])] = r
+        got, got_stats = parse_pdf(path, date)
+        manifest[date.isoformat()] = {
+            "issue": date.isoformat(), "found": "1",
+            "bytes": str(os.path.getsize(path)), "parsed": "1" if got else "0",
+        }
+        new_issues += 1
+        print(f"{key}: 가격 {len(got)}건 / 지표 {len(got_stats)}건"
+              + ("" if got else "  (텍스트 없음 — 다음 호가 이 주를 덮는다)"))
 
-    rows = sorted(merged.values(), key=lambda r: (r["week"], r["kind"], r["item"]))
-    with open(args.out, "w", newline="", encoding="utf-8") as fp:
-        writer = csv.DictWriter(fp, fieldnames=["week", "kind", "item", "value"],
-                                lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(rows)
+        # 같은 주가 여러 호에 실린다. 나중 호가 이기게 해서 USDA 수정치를 받는다.
+        for r in got:
+            cuts[(r["week"], r["kind"], r["item"])] = {**r, "value": fmt(r["value"])}
+        for r in got_stats:
+            stats[(r["week"], r["species"], r["metric"])] = {
+                **r, "value": fmt(r["value"]),
+                "prev": fmt(r["prev"]) if r["prev"] is not None else "",
+            }
+        time.sleep(0.2)
 
-    merged_stats = {}
-    for r in stats:
-        merged_stats[(r["week"], r["species"], r["metric"])] = r
-    stat_rows = sorted(merged_stats.values(),
-                       key=lambda r: (r["week"], r["species"], r["metric"]))
-    with open(OUT_STATS, "w", newline="", encoding="utf-8") as fp:
-        writer = csv.DictWriter(fp, fieldnames=["week", "species", "metric", "value", "prev"],
-                                lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(stat_rows)
+    cut_rows = write_rows(args.out, cuts, ["week", "kind", "item", "value"],
+                          ["week", "kind", "item"])
+    stat_rows = write_rows(OUT_STATS, stats, ["week", "species", "metric", "value", "prev"],
+                           ["week", "species", "metric"])
+    write_rows(OUT_ISSUES, {(k,): v for k, v in manifest.items()},
+               ["issue", "found", "bytes", "parsed"], ["issue"])
 
-    weeks = sorted({r["week"] for r in rows})
-    print(f"\n발행분 {len(issues)}호 -> 가격 {len(rows)}건 / {len(weeks)}주 -> {args.out}")
+    weeks = sorted({r["week"] for r in cut_rows})
+    print(f"\n새 발행분 {new_issues}호 · 가격 {len(cut_rows)}건 / {len(weeks)}주 -> {args.out}")
     print(f"                지표 {len(stat_rows)}건 -> {OUT_STATS}")
     if weeks:
         print(f"기간: {weeks[0]} ~ {weeks[-1]}")

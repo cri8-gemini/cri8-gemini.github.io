@@ -41,6 +41,14 @@ jobs:
       - name: TXRH 주가 수집
         run: python scripts/collect_txrh.py
 
+      # NEWSLINE PDF 는 주 1회 올라온다. 한 호에 5주치가 실려서 최신 호만 받아도
+      # 직전 4주가 매번 다시 들어온다. 그래서 전체를 다시 받지 않고, 마지막으로
+      # 찾은 호 다음 날부터만 찔러본다 (보통 하루 0~7번 요청).
+      - name: NEWSLINE PDF 수집 (증분)
+        run: |
+          pip install --quiet -r requirements.txt
+          python scripts/parse_newsline.py
+
       # 커밋보다 먼저 빌드한다. build_site.py 가 data/merged_weekly.csv 를
       # 생성하므로, 순서가 반대면 병합 CSV 만 항상 한 실행 뒤처진 채 커밋된다.
       - name: 사이트 빌드
@@ -48,7 +56,10 @@ jobs:
           python scripts/build_site.py
           mkdir -p _site
           cp index.html _site/
-          cp -r data _site/data   # CSV 를 사이트에서도 내려받을 수 있게 둔다
+          # CSV 를 사이트에서도 내려받을 수 있게 둔다. PDF 원본은 뺀다 — 용량이
+          # 크고 원본은 usmef.co.kr 에 그대로 있다.
+          mkdir -p _site/data
+          cp data/*.csv _site/data/
 
       # 저장소에는 데이터만 커밋한다. index.html 은 생성물이라 커밋하면 로컬
       # 작업분과 충돌한다. 배포는 아래에서 아티팩트로 올린다.
