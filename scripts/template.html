@@ -198,6 +198,10 @@
       <div class="chips" role="group" aria-labelledby="lbl-meat3" id="meat-chips3"></div>
     </div>
     <div class="group">
+      <span class="group-label" id="lbl-horizon">변화율 기간</span>
+      <div class="chips" role="group" aria-labelledby="lbl-horizon" id="horizon-chips"></div>
+    </div>
+    <div class="group">
       <span class="group-label" id="lbl-lag">시차</span>
       <div class="chips" role="group" aria-labelledby="lbl-lag" id="lag-chips"></div>
     </div>
@@ -223,7 +227,7 @@
       <div class="tile-note" id="s2-note"></div>
     </div>
     <div class="tile">
-      <div class="tile-label">주간 변화율 상관계수</div>
+      <div class="tile-label" id="s3-label">주간 변화율 상관계수</div>
       <div class="tile-value" id="s3-value">—</div>
       <div class="tile-note" id="s3-note"></div>
     </div>
@@ -311,6 +315,7 @@ const state = {
   // 육류 선이 바닥에 눌린다. 로그 축에서는 세로 거리 = 변화율이라 나란히 읽힌다.
   scale: "log",
   lag: 0,
+  horizon: "13",
   qlag: "1", // 분기 카드 기본값: 원가가 다음 분기 주가에 반영된다는 가설
   view: "chart",
 };
@@ -342,6 +347,16 @@ const lagChipLabel = (lag) => (lag === 0 ? "동시" : `${lag > 0 ? "+" : ""}${la
 // 대신 0~4주를 한 주 단위로 본다. 원가가 반영된다면 이 범위에 나타나야 하고,
 // 인접 시차끼리 부호가 이어지는지로 진짜 신호인지 가릴 수 있다.
 const LAGS = [0, 1, 2, 3, 4];
+
+// 상관을 몇 주 변화율로 잴지. 주간은 잡음이 커서 "같이 움직인다"가 묻히고,
+// 분기(13주)로 보면 추세가 드러난다. 실제로 같은 쌍이라도 주간에서는 0.1 대,
+// 13주에서는 0.5~0.6 이 나온다. 어느 쪽이 옳다기보다 보는 시간 규모가 다르다.
+const HORIZONS = [
+  { id: "1", label: "주간", weeks: 1 },
+  { id: "4", label: "4주", weeks: 4 },
+  { id: "13", label: "13주(분기)", weeks: 13 },
+];
+const horizonWeeks = () => HORIZONS.find((h) => h.id === state.horizon).weeks;
 const MIN_OBS = 12; // 관측치가 이보다 적으면 상관계수를 신뢰할 수 없다
 
 const WEEK_MS = 7 * 86400000;
@@ -406,16 +421,20 @@ function pearson(a, b) {
   return { r: da && db ? num / Math.sqrt(da * db) : null, n: a.length };
 }
 
-// 수준(level)이 아니라 주간 변화율로 계산한다. 둘 다 장기 우상향이면
-// 수준 상관은 관계가 없어도 1에 가깝게 나오기 때문.
-// 변화율은 바로 붙어 있는 주 사이에서만 만든다 — 중간에 빠진 주를 건너뛰고
-// 이으면 2주치 변동이 1주치인 척하게 된다.
+// 수준(level)이 아니라 변화율로 계산한다. 둘 다 장기 우상향이면 수준 상관은
+// 관계가 없어도 1에 가깝게 나오기 때문.
+//
+// 변화율 기간은 고를 수 있다. 앞뒤가 H 주 떨어진 값끼리만 짝지어 만든다 —
+// 중간에 빠진 주를 건너뛰고 이으면 더 긴 기간의 변동이 H 주치인 척하게 된다.
 function correlation(rows) {
+  const H = horizonWeeks();
+  const byWeek = new Map(rows.map((r) => [r.w, r]));
   const a = [], b = [];
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i].w - rows[i - 1].w !== 1) continue;
-    a.push(rows[i].rawStock / rows[i - 1].rawStock - 1);
-    b.push(rows[i].rawMeat / rows[i - 1].rawMeat - 1);
+  for (const row of rows) {
+    const past = byWeek.get(row.w - H);
+    if (!past || !past.rawStock || !past.rawMeat) continue;
+    a.push(row.rawStock / past.rawStock - 1);
+    b.push(row.rawMeat / past.rawMeat - 1);
   }
   const out = pearson(a, b);
   return out.r == null ? null : out;
@@ -784,7 +803,7 @@ function renderLag() {
   }, "육류가 먼저 움직인 주 수 ▶"));
 
   el("lag-note").textContent =
-    "막대를 누르면 위 꺾은선에 그 시차가 적용됩니다 · "
+    `막대를 누르면 위 꺾은선에 그 시차가 적용됩니다 · ${HORIZONS.find((h) => h.id === state.horizon).label} 변화율 기준 · `
     + "회색 띠 안쪽은 관계가 없어도 우연히 나올 수 있는 크기입니다";
 
   const strongest = data.reduce((best, d) =>
@@ -1051,8 +1070,10 @@ function renderStats(points) {
 
   const corr = correlation(points);
   el("s3-value").textContent = corr ? fmt(corr.r, 2) : "—";
+  el("s3-label").textContent =
+    `${HORIZONS.find((h) => h.id === state.horizon).label} 변화율 상관계수`;
   el("s3-note").textContent = corr
-    ? `${lagPhrase(state.lag)} · 주간 ${corr.n}개 구간`
+    ? `${lagPhrase(state.lag)} · ${corr.n}개 구간`
     : "구간이 너무 짧습니다";
 }
 
@@ -1093,6 +1114,8 @@ function render() {
   chips("meat-chips", byGroup("가격"), state.meat, (id) => { state.meat = id; render(); });
   chips("meat-chips2", byGroup("부위"), state.meat, (id) => { state.meat = id; render(); });
   chips("meat-chips3", byGroup("수급"), state.meat, (id) => { state.meat = id; render(); });
+  chips("horizon-chips", HORIZONS.map((h) => ({ id: h.id, label: h.label })), state.horizon,
+    (id) => { state.horizon = id; render(); });
   chips("lag-chips", LAGS.map((l) => ({ id: String(l), label: lagChipLabel(l) })), String(state.lag),
     (id) => { state.lag = +id; render(); });
   chips("scale-chips", [{ id: "log", label: "로그" }, { id: "linear", label: "선형" }], state.scale,
