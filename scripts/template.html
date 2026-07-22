@@ -178,6 +178,10 @@
       <div class="chips" role="group" aria-labelledby="lbl-meat" id="meat-chips"></div>
     </div>
     <div class="group">
+      <span class="group-label" id="lbl-lag">시차</span>
+      <div class="chips" role="group" aria-labelledby="lbl-lag" id="lag-chips"></div>
+    </div>
+    <div class="group">
       <span class="group-label" id="lbl-scale">세로축</span>
       <div class="chips" role="group" aria-labelledby="lbl-scale" id="scale-chips"></div>
     </div>
@@ -265,66 +269,74 @@ const state = {
   // 두 계열의 상승폭 차이가 워낙 커서(21년 기준 16배 vs 1.2배) 선형 축에서는
   // 육류 선이 바닥에 눌린다. 로그 축에서는 세로 거리 = 변화율이라 나란히 읽힌다.
   scale: "log",
+  lag: 0,
   view: "chart",
 };
 
 const el = (id) => document.getElementById(id);
 const meatMeta = () => DATA.meat.find((m) => m.key === state.meat);
 
+// 시차를 사람이 읽는 말로. 부호 규약을 매번 되짚지 않아도 되게 한다.
+const lagPhrase = (lag) =>
+  lag === 0 ? "같은 주" : lag > 0 ? `육류가 ${lag}주 먼저` : `주가가 ${-lag}주 먼저`;
+const lagChipLabel = (lag) => (lag === 0 ? "동시" : `${lag > 0 ? "+" : ""}${lag}주`);
+
 /* ---------- 데이터 ---------- */
-
-// 지수화·상관계수 모두 두 계열이 함께 있는 주만 쓴다. 한쪽만 있는 주를
-// 섞으면 기준점이 서로 다른 날짜가 되어 지수가 어긋난다.
-function visibleRows() {
-  const meatIdx = COL[state.meat];
-  const paired = DATA.rows.filter((r) => r[COL.txrh] != null && r[meatIdx] != null);
-  if (!paired.length) return [];
-
-  const range = RANGES.find((r) => r.id === state.range);
-  if (!range.years) return paired;
-
-  const last = new Date(paired[paired.length - 1][0]);
-  const cutoff = new Date(last);
-  cutoff.setFullYear(cutoff.getFullYear() - range.years);
-  return paired.filter((r) => new Date(r[0]) >= cutoff);
-}
-
-function indexed(rows) {
-  const meatIdx = COL[state.meat];
-  const baseStock = rows[0][COL.txrh];
-  const baseMeat = rows[0][meatIdx];
-  return rows.map((r) => ({
-    date: r[0],
-    t: new Date(r[0]).getTime(),
-    stock: (r[COL.txrh] / baseStock) * 100,
-    meat: (r[meatIdx] / baseMeat) * 100,
-    rawStock: r[COL.txrh],
-    rawMeat: r[meatIdx],
-  }));
-}
 
 // 시차 k(주) = 육류가 k 주 먼저 움직인 것을 주가와 맞춰 본다.
 // 음수면 반대로 주가가 먼저다. 0 이면 같은 주.
-const LAGS = [-13, -8, -4, 0, 4, 8, 13, 26];
+// ±8 주까지만 본다. 기본 구간이 1년(52주)이라 13·26주 시차는 겹치는 구간이
+// 39주·26주로 줄어 상관계수가 크게 흔들린다.
+const LAGS = [-8, -4, 0, 4, 8];
 const MIN_OBS = 12; // 관측치가 이보다 적으면 상관계수를 신뢰할 수 없다
 
-function lagCorrelations(points) {
-  // 변화율은 인접 주 사이에서만 계산한다 (수준이 아니라 변화율 기준).
-  const stockRet = [], meatRet = [];
-  for (let i = 1; i < points.length; i++) {
-    stockRet.push(points[i].rawStock / points[i - 1].rawStock - 1);
-    meatRet.push(points[i].rawMeat / points[i - 1].rawMeat - 1);
-  }
+const WEEK_MS = 7 * 86400000;
+const weekNo = (iso) => Math.round(new Date(iso).getTime() / WEEK_MS);
 
-  return LAGS.map((lag) => {
-    const a = [], b = [];
-    for (let i = 0; i < stockRet.length; i++) {
-      const j = i - lag; // 육류를 lag 주 앞당겨 같은 시점에 놓는다
-      if (j < 0 || j >= meatRet.length) continue;
-      a.push(stockRet[i]); b.push(meatRet[j]);
-    }
-    return { lag, ...pearson(a, b) };
-  }).filter((d) => d.n >= MIN_OBS);
+// 주차 -> 행. 시차를 배열 위치가 아니라 실제 주차로 옮기기 위한 색인이다.
+// 데이터에 빠진 주가 있어서 "13칸 뒤"와 "13주 뒤"가 어긋난다.
+const BY_WEEK = new Map();
+DATA.rows.forEach((r) => BY_WEEK.set(weekNo(r[0]), r));
+
+// 두 계열이 함께 있는 주만 남긴다. 한쪽만 있는 주를 섞으면 지수 기준점이
+// 서로 다른 날짜가 되어 두 선이 어긋난다.
+function pairedSeries(lag) {
+  const meatIdx = COL[state.meat];
+  const out = [];
+  for (const row of DATA.rows) {
+    const stock = row[COL.txrh];
+    if (stock == null) continue;
+    const src = BY_WEEK.get(weekNo(row[0]) - lag); // lag 주 전의 육류 값
+    const meat = src ? src[meatIdx] : null;
+    if (meat == null) continue;
+    out.push({
+      date: row[0],
+      meatDate: src[0], // 시프트 전 원래 날짜 — 툴팁에서 밝힌다
+      t: new Date(row[0]).getTime(),
+      w: weekNo(row[0]),
+      rawStock: stock,
+      rawMeat: meat,
+    });
+  }
+  return out;
+}
+
+function inRange(rows) {
+  const range = RANGES.find((r) => r.id === state.range);
+  if (!range.years || !rows.length) return rows;
+  const cutoff = new Date(rows[rows.length - 1].date);
+  cutoff.setFullYear(cutoff.getFullYear() - range.years);
+  return rows.filter((r) => new Date(r.date) >= cutoff);
+}
+
+function indexed(rows) {
+  const baseStock = rows[0].rawStock;
+  const baseMeat = rows[0].rawMeat;
+  return rows.map((r) => ({
+    ...r,
+    stock: (r.rawStock / baseStock) * 100,
+    meat: (r.rawMeat / baseMeat) * 100,
+  }));
 }
 
 function pearson(a, b) {
@@ -339,32 +351,34 @@ function pearson(a, b) {
   return { r: da && db ? num / Math.sqrt(da * db) : null, n: a.length };
 }
 
+// 수준(level)이 아니라 주간 변화율로 계산한다. 둘 다 장기 우상향이면
+// 수준 상관은 관계가 없어도 1에 가깝게 나오기 때문.
+// 변화율은 바로 붙어 있는 주 사이에서만 만든다 — 중간에 빠진 주를 건너뛰고
+// 이으면 2주치 변동이 1주치인 척하게 된다.
+function correlation(rows) {
+  const a = [], b = [];
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i].w - rows[i - 1].w !== 1) continue;
+    a.push(rows[i].rawStock / rows[i - 1].rawStock - 1);
+    b.push(rows[i].rawMeat / rows[i - 1].rawMeat - 1);
+  }
+  const out = pearson(a, b);
+  return out.r == null ? null : out;
+}
+
+// 시차별로 페어링을 처음부터 다시 한다. 같은 pairedSeries 를 쓰므로
+// 아래 막대 차트와 위 꺾은선이 정확히 같은 기준을 본다.
+function lagCorrelations() {
+  return LAGS.map((lag) => {
+    const rows = inRange(pairedSeries(lag));
+    const c = correlation(rows);
+    return c ? { lag, ...c } : { lag, r: null, n: 0 };
+  }).filter((d) => d.r != null && d.n >= MIN_OBS);
+}
+
 // 관측치가 n 개일 때 우연히 나올 수 있는 상관계수의 대략적 크기.
 // 이 띠 안에 들어오면 "관계 없음"으로 읽어야 한다.
 const noiseBand = (n) => 1.96 / Math.sqrt(n);
-
-function correlation(points) {
-  // 수준(level)이 아니라 주간 변화율로 계산한다. 둘 다 장기 우상향이면
-  // 수준 상관은 관계가 없어도 1에 가깝게 나오기 때문.
-  const a = [], b = [];
-  for (let i = 1; i < points.length; i++) {
-    const ps = points[i - 1].rawStock, pm = points[i - 1].rawMeat;
-    if (!ps || !pm) continue;
-    a.push(points[i].rawStock / ps - 1);
-    b.push(points[i].rawMeat / pm - 1);
-  }
-  if (a.length < 3) return null;
-
-  const mean = (xs) => xs.reduce((s, x) => s + x, 0) / xs.length;
-  const ma = mean(a), mb = mean(b);
-  let num = 0, da = 0, db = 0;
-  for (let i = 0; i < a.length; i++) {
-    const xa = a[i] - ma, xb = b[i] - mb;
-    num += xa * xb; da += xa * xa; db += xb * xb;
-  }
-  if (!da || !db) return null;
-  return { r: num / Math.sqrt(da * db), n: a.length };
-}
 
 /* ---------- 포맷 ---------- */
 
@@ -590,7 +604,8 @@ function showHover(clientX) {
       <span class="swatch" style="background:var(--series-meat)"></span>
       <span>${meatMeta().label}</span>
       <span class="tt-val">${fmt(p.meat, 1)} <span style="color:var(--text-muted);font-weight:400">· ${fmt(p.rawMeat)}</span></span>
-    </div>`;
+    </div>
+    ${state.lag ? `<div class="tt-date" style="margin:5px 0 0">육류 값은 ${p.meatDate} 주의 것</div>` : ""}`;
 
   const plotRect = el("plot").getBoundingClientRect();
   const svgRect = el("svg").getBoundingClientRect();
@@ -616,8 +631,8 @@ function hideHover() {
 const LAG_H = 210;
 const LAG_PAD = { top: 14, right: 14, bottom: 34, left: 40 };
 
-function renderLag(points) {
-  const data = lagCorrelations(points);
+function renderLag() {
+  const data = lagCorrelations();
   const svg = el("lag-svg");
   while (svg.firstChild) svg.removeChild(svg.firstChild);
 
@@ -634,9 +649,9 @@ function renderLag(points) {
   const innerW = width - LAG_PAD.left - LAG_PAD.right;
   const innerH = LAG_H - LAG_PAD.top - LAG_PAD.bottom;
 
-  // 잡음 띠는 시차마다 다르다. 시차가 클수록 겹치는 구간이 짧아져 관측치가
-  // 줄고, 우연히 나올 수 있는 상관계수는 그만큼 커진다. 하나로 통일하면
-  // 관측치가 많은 시차를 과하게 깎아내리게 된다.
+  // 띠는 관측치 수에서 나오므로 시차마다 따로 계산한다. 주가 구간은 고정한 채
+  // 육류 값만 구간 밖에서 끌어오는 구조라 대개 시차와 무관하게 같은 높이가
+  // 되지만, 데이터 시작점에 걸리는 전체 구간에서는 큰 시차일수록 조금 넓어진다.
   data.forEach((d) => { d.band = noiseBand(d.n); });
 
   const maxBand = Math.max(...data.map((d) => d.band));
@@ -676,6 +691,9 @@ function renderLag(points) {
       x: cx - barW / 2, y: top, width: barW, height: Math.max(height, 1),
       fill: color, rx: 3,
       "data-lag": d.lag, "data-r": d.r, "data-n": d.n, "data-weak": weak ? "1" : "",
+      // 지금 위 꺾은선에 적용된 시차를 테두리로 표시한다
+      stroke: d.lag === state.lag ? "var(--text-primary)" : "none",
+      "stroke-width": d.lag === state.lag ? 1.5 : 0,
     }));
 
     // 막대마다 값을 직접 적어서 색에만 기대지 않는다
@@ -686,8 +704,18 @@ function renderLag(points) {
 
     svg.appendChild(node("text", {
       x: cx, y: LAG_H - 16, "text-anchor": "middle",
-      fill: "var(--text-muted)", "font-size": 11,
-    }, d.lag === 0 ? "동시" : `${d.lag > 0 ? "+" : ""}${d.lag}주`));
+      fill: d.lag === state.lag ? "var(--text-primary)" : "var(--text-muted)",
+      "font-size": 11, "font-weight": d.lag === state.lag ? 600 : 400,
+    }, lagChipLabel(d.lag)));
+
+    // 막대를 눌러도 위 꺾은선의 시차가 바뀌게 한다
+    const hit = node("rect", {
+      x: LAG_PAD.left + slot * i, y: LAG_PAD.top, width: slot, height: innerH,
+      fill: "transparent",
+    });
+    hit.style.cursor = "pointer";
+    hit.addEventListener("click", () => { state.lag = d.lag; render(); });
+    svg.appendChild(hit);
   });
 
   svg.appendChild(node("text", {
@@ -699,9 +727,8 @@ function renderLag(points) {
   }, "육류가 먼저 ▶"));
 
   el("lag-note").textContent =
-    "육류 시세를 앞뒤로 옮겨 가며 주간 변화율 상관을 다시 계산합니다 · "
-    + "회색 띠 안쪽은 우연으로도 나올 수 있는 크기입니다 "
-    + "(시차가 클수록 겹치는 구간이 짧아져 띠가 넓어집니다)";
+    "막대를 누르면 위 꺾은선에 그 시차가 적용됩니다 · "
+    + "회색 띠 안쪽은 관계가 없어도 우연히 나올 수 있는 크기입니다";
 
   const strongest = data.reduce((best, d) =>
     Math.abs(d.r) > Math.abs(best.r) ? d : best);
@@ -747,12 +774,15 @@ function lagHover(clientX) {
 /* ---------- 표 ---------- */
 
 function renderTable(points) {
+  const shifted = state.lag !== 0;
   const head = `<thead><tr>
     <th>주</th><th>${DATA.stockLabel} 지수</th><th>${DATA.stockLabel} ($)</th>
+    ${shifted ? "<th>육류 원래 주</th>" : ""}
     <th>${meatMeta().label} 지수</th><th>${meatMeta().label}</th>
   </tr></thead>`;
   const body = points.map((p) => `<tr>
     <td>${p.date}</td><td>${fmt(p.stock, 1)}</td><td>${fmt(p.rawStock)}</td>
+    ${shifted ? `<td>${p.meatDate}</td>` : ""}
     <td>${fmt(p.meat, 1)}</td><td>${fmt(p.rawMeat)}</td>
   </tr>`).join("");
   el("table").innerHTML = head + `<tbody>${body}</tbody>`;
@@ -772,13 +802,16 @@ function renderStats(points) {
 
   const corr = correlation(points);
   el("s3-value").textContent = corr ? fmt(corr.r, 2) : "—";
-  el("s3-note").textContent = corr ? `주간 ${corr.n}개 구간` : "구간이 너무 짧습니다";
+  el("s3-note").textContent = corr
+    ? `${lagPhrase(state.lag)} · 주간 ${corr.n}개 구간`
+    : "구간이 너무 짧습니다";
 }
 
 function renderLegend() {
   el("legend").innerHTML = [
     { color: "var(--series-stock)", label: `${DATA.stockLabel} (수정종가)` },
-    { color: "var(--series-meat)", label: meatMeta().label },
+    { color: "var(--series-meat)",
+      label: meatMeta().label + (state.lag ? ` · ${Math.abs(state.lag)}주 ${state.lag > 0 ? "당겨서" : "밀어서"} 맞춤` : "") },
   ].map((s) => `<span class="legend-item">
       <span class="swatch" style="background:${s.color}"></span>${s.label}
     </span>`).join("");
@@ -796,38 +829,49 @@ function chips(container, items, selected, onPick) {
 }
 
 function render() {
-  const rows = visibleRows();
-
   chips("range-chips", RANGES, state.range, (id) => { state.range = id; render(); });
   chips("meat-chips", DATA.meat.map((m) => ({ id: m.key, label: m.label })), state.meat,
     (id) => { state.meat = id; render(); });
+  chips("lag-chips", LAGS.map((l) => ({ id: String(l), label: lagChipLabel(l) })), String(state.lag),
+    (id) => { state.lag = +id; render(); });
   chips("scale-chips", [{ id: "log", label: "로그" }, { id: "linear", label: "선형" }], state.scale,
     (id) => { state.scale = id; render(); });
   chips("view-chips", [{ id: "chart", label: "차트" }, { id: "table", label: "표" }], state.view,
     (id) => { state.view = id; render(); });
 
+  // 선택한 시차만큼 육류를 옮겨 다시 짝지은 뒤, 그 결과 위에서 구간을 자르고
+  // 지수를 매긴다. 순서가 중요하다 — 짝짓기 후에 잘라야 두 선의 기준점이
+  // 같은 주에 놓인다.
+  const rows = inRange(pairedSeries(state.lag));
+
+  el("lag-title").textContent = `${DATA.stockLabel} vs ${meatMeta().label} — 시차 상관`;
+
   if (!rows.length) {
     el("chart-note").textContent = "이 구간에는 두 값이 모두 있는 주가 없습니다.";
+    el("lag-read").textContent = "";
     return;
   }
 
   const points = indexed(rows);
-  current.points = points; // 표 보기에서도 리사이즈 시 시차 차트를 다시 그릴 수 있도록
+  current.points = points; // 표 보기에서도 리사이즈 시 다시 그릴 수 있도록
   renderLegend();
   renderStats(points);
 
-  el("chart-title").textContent = `${DATA.stockLabel} vs ${meatMeta().label} — 지수 추이`;
+  const shift = state.lag === 0 ? "" : ` (${lagPhrase(state.lag)})`;
+  el("chart-title").textContent =
+    `${DATA.stockLabel} vs ${meatMeta().label}${shift} — 지수 추이`;
   el("chart-note").textContent =
     `${points[0].date} = 100 기준 · 주간 ${points.length}개 구간 · `
-    + (state.scale === "log" ? "로그 축 (세로 거리가 같으면 변화율이 같습니다)" : "선형 축");
+    + (state.scale === "log" ? "로그 축 (세로 거리가 같으면 변화율이 같습니다)" : "선형 축")
+    + (state.lag
+      ? ` · 육류 선을 ${Math.abs(state.lag)}주 ${state.lag > 0 ? "오른쪽" : "왼쪽"}으로 옮겨 겹쳤습니다`
+      : "");
 
   el("chart-view").classList.toggle("hidden", state.view !== "chart");
   el("table-view").classList.toggle("hidden", state.view !== "table");
 
   if (state.view === "chart") renderChart(points); else renderTable(points);
-
-  el("lag-title").textContent = `${DATA.stockLabel} vs ${meatMeta().label} — 시차 상관`;
-  renderLag(points);
+  renderLag();
 }
 
 /* ---------- 부트 ---------- */
@@ -849,7 +893,7 @@ window.addEventListener("resize", () => {
   resizeTimer = setTimeout(() => {
     if (!current.points.length) return;
     if (state.view === "chart") renderChart(current.points);
-    renderLag(current.points);
+    renderLag();
   }, 120);
 });
 
