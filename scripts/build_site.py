@@ -10,7 +10,7 @@ import json
 import os
 
 USMEF_CSV = "data/usmef_weekly.csv"
-STOCK_CSV = "data/stocks/TXRH.csv"
+STOCK_DIR = "data/stocks"
 MERGED_CSV = "data/merged_weekly.csv"
 STATS_CSV = "data/newsline_stats.csv"
 CUTS_CSV = "data/newsline_cuts.csv"
@@ -58,7 +58,17 @@ CUT_ITEMS = {
     "193 Flank Steak": "cut_193",
 }
 
-STOCK_LABEL = "TXRH"
+# 비교 대상 종목. 육류 계열 41개 × 시차 3개 검정에서 잡음 띠를 벗어난 횟수로
+# 골랐다(우연 기대치 6.2회, 위약 검정은 6~7회로 수렴). 자세한 근거는 CLAUDE.md.
+STOCKS = [
+    {"key": "txrh", "ticker": "TXRH", "label": "TXRH (텍사스로드하우스)"},
+    {"key": "cake", "ticker": "CAKE", "label": "CAKE (치즈케이크팩토리)"},
+    {"key": "cbrl", "ticker": "CBRL", "label": "CBRL (크래커배럴)"},
+    {"key": "blmn", "ticker": "BLMN", "label": "BLMN (아웃백)"},
+    {"key": "bjri", "ticker": "BJRI", "label": "BJRI (BJ's)"},
+    {"key": "stks", "ticker": "STKS", "label": "STKS (STK)"},
+    {"key": "spy", "ticker": "SPY", "label": "SPY (시장 전체)"},
+]
 
 
 
@@ -103,12 +113,12 @@ def merge():
         for series in MEAT_SERIES:
             entry[series["key"]] = to_float(row.get(series["key"]))
 
-    for row in read_csv(STOCK_CSV):
-        key = iso_week(row["date"])
-        entry = weeks.setdefault(key, {"date": None, "stock_date": None})
-        entry["stock_date"] = row["date"]
-        entry["txrh"] = to_float(row.get("adj_close"))
-        entry["txrh_close"] = to_float(row.get("close"))
+    for stock in STOCKS:
+        for row in read_csv(os.path.join(STOCK_DIR, f"{stock['ticker']}.csv")):
+            key = iso_week(row["date"])
+            entry = weeks.setdefault(key, {"date": None, "stock_date": None})
+            entry["stock_date"] = row["date"]
+            entry[stock["key"]] = to_float(row.get("adj_close"))
 
     for key, values in cuts_by_week().items():
         weeks.setdefault(key, {"date": None, "stock_date": None}).update(values)
@@ -126,7 +136,7 @@ def merge():
 
 
 def write_merged_csv(rows):
-    columns = ["week", "date", "txrh", *[s["key"] for s in MEAT_SERIES]]
+    columns = ["week", "date", *[s["key"] for s in STOCKS], *[s["key"] for s in MEAT_SERIES]]
     with open(MERGED_CSV, "w", newline="", encoding="utf-8") as fp:
         writer = csv.writer(fp, lineterminator="\n")  # LF 고정 — collect_usmef.py 참고
         writer.writerow(columns)
@@ -192,13 +202,13 @@ def stats_by_week():
 
 
 def build_payload(rows):
-    keys = ["txrh", *[s["key"] for s in MEAT_SERIES]]
+    keys = [*[s["key"] for s in STOCKS], *[s["key"] for s in MEAT_SERIES]]
     return {
         "generated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-        "stockLabel": STOCK_LABEL,
+        "stocks": STOCKS,
         "meat": MEAT_SERIES,
         "columns": keys,
-        # [날짜, txrh, beef, beef_116, pork, pork_123a]
+        # [날짜, 종목들..., 육류 지표들...]
         "rows": [[r["date"], *[r.get(k) for k in keys]] for r in rows if r.get("date")],
     }
 

@@ -162,9 +162,9 @@
 <div class="viz-root">
 <div class="wrap">
 
-  <h1>TXRH vs 미국 육류 시세</h1>
+  <h1 id="page-title">미국 외식주 vs 육류 시세</h1>
   <p class="sub">
-    텍사스 로드하우스 주가와 원가 지표를 같은 기준으로 비교합니다.
+    외식주 주가와 육류 시세를 같은 기준으로 비교합니다.
     두 값의 단위가 달라 <strong>구간 시작 = 100</strong>으로 지수화했습니다.
   </p>
 
@@ -172,6 +172,10 @@
     <div class="group">
       <span class="group-label" id="lbl-range">기간</span>
       <div class="chips" role="group" aria-labelledby="lbl-range" id="range-chips"></div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-stock">종목</span>
+      <div class="chips" role="group" aria-labelledby="lbl-stock" id="stock-chips"></div>
     </div>
     <div class="group">
       <span class="group-label" id="lbl-meat">가격 지표</span>
@@ -288,6 +292,7 @@ const RANGES = [
 ];
 
 const state = {
+  stock: DATA.stocks[0].key,
   range: "1y",
   meat: DATA.meat[0].key,
   // 두 계열의 상승폭 차이가 워낙 커서(21년 기준 16배 vs 1.2배) 선형 축에서는
@@ -300,6 +305,9 @@ const state = {
 
 const el = (id) => document.getElementById(id);
 const meatMeta = () => DATA.meat.find((m) => m.key === state.meat);
+const stockMeta = () => DATA.stocks.find((s) => s.key === state.stock);
+// 버튼에는 긴 이름을, 차트 안에는 티커만 쓴다
+const stockTicker = () => stockMeta().label.split(" ")[0];
 
 // 시차를 사람이 읽는 말로. 부호 규약을 매번 되짚지 않아도 되게 한다.
 const lagPhrase = (lag) =>
@@ -333,7 +341,7 @@ function pairedSeries(lag) {
   const meatIdx = COL[state.meat];
   const out = [];
   for (const row of DATA.rows) {
-    const stock = row[COL.txrh];
+    const stock = row[COL[state.stock]];
     if (stock == null) continue;
     const src = BY_WEEK.get(weekNo(row[0]) - lag); // lag 주 전의 육류 값
     const meat = src ? src[meatIdx] : null;
@@ -564,7 +572,7 @@ function renderChart(points) {
   // 선 끝 직접 라벨 — 색만으로 계열을 구분하지 않도록
   const last = points[points.length - 1];
   const ends = [
-    { v: last.stock, color: "var(--series-stock)", label: DATA.stockLabel },
+    { v: last.stock, color: "var(--series-stock)", label: stockTicker() },
     { v: last.meat, color: "var(--series-meat)", label: meatMeta().label },
   ].sort((a, b) => a.v - b.v);
   if (Math.abs(scaleY(ends[0].v) - scaleY(ends[1].v)) < 14) {
@@ -631,7 +639,7 @@ function showHover(clientX) {
     <div class="tt-date">${p.date}</div>
     <div class="tt-row">
       <span class="swatch" style="background:var(--series-stock)"></span>
-      <span>${DATA.stockLabel}</span>
+      <span>${stockTicker()}</span>
       <span class="tt-val">${fmt(p.stock, 1)} <span style="color:var(--text-muted);font-weight:400">· $${fmt(p.rawStock)}</span></span>
     </div>
     <div class="tt-row">
@@ -865,7 +873,7 @@ function renderQuarter() {
   while (svg.firstChild) svg.removeChild(svg.firstChild);
 
   el("q-title").textContent =
-    `${meatMeta().label} 분기 변화 vs ${DATA.stockLabel} 분기 수익률`;
+    `${meatMeta().label} 분기 변화 vs ${stockTicker()} 분기 수익률`;
 
   if (pts.length < MIN_QUARTERS) {
     el("q-note").textContent = `분기가 ${MIN_QUARTERS}개 미만이라 계산할 수 없습니다.`;
@@ -923,7 +931,7 @@ function renderQuarter() {
     x: 13, y: Q_PAD.top + innerH / 2, "text-anchor": "middle",
     fill: "var(--text-secondary)", "font-size": 11.5,
     transform: `rotate(-90 13 ${Q_PAD.top + innerH / 2})`,
-  }, `세로: ${DATA.stockLabel} 분기 수익률`));
+  }, `세로: ${stockTicker()} 분기 수익률`));
 
   const stat = pearson(pts.map((p) => p.x), pts.map((p) => p.y));
   const band = noiseBand(stat.n);
@@ -984,7 +992,7 @@ function qHover(clientX, clientY) {
   const tip = el("q-tooltip");
   tip.innerHTML = `<div class="tt-date">${best.dataset.cost} 원가 → ${best.dataset.ret} 주가</div>
     <div class="tt-row"><span>${meatMeta().label}</span><span class="tt-val">${pct(+best.dataset.x)}</span></div>
-    <div class="tt-row"><span>${DATA.stockLabel}</span><span class="tt-val">${pct(+best.dataset.y)}</span></div>`;
+    <div class="tt-row"><span>${stockTicker()}</span><span class="tt-val">${pct(+best.dataset.y)}</span></div>`;
 
   const px = (+best.getAttribute("cx") / svg.viewBox.baseVal.width) * rect.width;
   const py = (+best.getAttribute("cy") / svg.viewBox.baseVal.height) * rect.height;
@@ -998,7 +1006,7 @@ function qHover(clientX, clientY) {
 function renderTable(points) {
   const shifted = state.lag !== 0;
   const head = `<thead><tr>
-    <th>주</th><th>${DATA.stockLabel} 지수</th><th>${DATA.stockLabel} ($)</th>
+    <th>주</th><th>${stockTicker()} 지수</th><th>${stockTicker()} ($)</th>
     ${shifted ? "<th>육류 원래 주</th>" : ""}
     <th>${meatMeta().label} 지수</th><th>${meatMeta().label}</th>
   </tr></thead>`;
@@ -1015,6 +1023,7 @@ function renderTable(points) {
 function renderStats(points) {
   const first = points[0], last = points[points.length - 1];
 
+  el("s1-label").textContent = stockTicker() + " 기간 수익률";
   el("s1-value").textContent = pct(last.rawStock / first.rawStock - 1);
   el("s1-note").textContent = `$${fmt(first.rawStock)} → $${fmt(last.rawStock)}`;
 
@@ -1031,7 +1040,7 @@ function renderStats(points) {
 
 function renderLegend() {
   el("legend").innerHTML = [
-    { color: "var(--series-stock)", label: `${DATA.stockLabel} (수정종가)` },
+    { color: "var(--series-stock)", label: `${stockTicker()} (수정종가)` },
     { color: "var(--series-meat)",
       label: meatMeta().label + (state.lag ? ` · ${Math.abs(state.lag)}주 ${state.lag > 0 ? "당겨서" : "밀어서"} 맞춤` : "") },
   ].map((s) => `<span class="legend-item">
@@ -1051,6 +1060,8 @@ function chips(container, items, selected, onPick) {
 }
 
 function render() {
+  chips("stock-chips", DATA.stocks.map((s) => ({ id: s.key, label: s.label })), state.stock,
+    (id) => { state.stock = id; render(); });
   chips("range-chips", RANGES, state.range, (id) => { state.range = id; render(); });
   // 지표가 14개라 한 줄에 다 넣으면 못 읽는다. 가격/수급으로 나누되 고르는
   // 값은 하나다 — 어느 줄에서 고르든 나머지 줄의 선택은 풀린다.
@@ -1071,7 +1082,7 @@ function render() {
   // 같은 주에 놓인다.
   const rows = inRange(pairedSeries(state.lag));
 
-  el("lag-title").textContent = `${DATA.stockLabel} vs ${meatMeta().label} — 시차 상관`;
+  el("lag-title").textContent = `${stockTicker()} vs ${meatMeta().label} — 시차 상관`;
 
   if (!rows.length) {
     el("chart-note").textContent = "이 구간에는 두 값이 모두 있는 주가 없습니다.";
@@ -1085,8 +1096,9 @@ function render() {
   renderStats(points);
 
   const shift = state.lag === 0 ? "" : ` (${lagPhrase(state.lag)})`;
+  el("page-title").textContent = `${stockTicker()} vs 미국 육류 시세`;
   el("chart-title").textContent =
-    `${DATA.stockLabel} vs ${meatMeta().label}${shift} — 지수 추이`;
+    `${stockTicker()} vs ${meatMeta().label}${shift} — 지수 추이`;
   el("chart-note").textContent =
     `${points[0].date} = 100 기준 · 주간 ${points.length}개 구간 · `
     + (state.scale === "log" ? "로그 축 (세로 거리가 같으면 변화율이 같습니다)" : "선형 축")
