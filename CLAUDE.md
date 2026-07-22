@@ -100,12 +100,17 @@ python scripts/build_site.py
 GitHub Actions 가 매일 06:00 KST 에 수집 → **데이터가 바뀐 날만** `data/` 를 커밋 →
 사이트를 빌드해 Pages 아티팩트로 배포한다. `workflow_dispatch` 로 수동 실행도 된다.
 
-Actions 는 `index.html` 을 **커밋하지 않는다.** 생성물이라 로컬 작업분과 충돌한다
-(실제로 rebase 충돌이 났다). 배포는 아티팩트로만 한다.
+`index.html` 은 **저장소에 없다** (`.gitignore`). 생성물이라 커밋하면 로컬 작업분과
+Actions 가 만든 것이 부딪힌다 (실제로 rebase 충돌이 났다). 로컬에서 `build_site.py` 를
+돌려 만들어 보고, 배포는 아티팩트로만 한다.
 
-동작 조건 두 가지:
+저장소 설정 두 가지에 의존한다. 배포가 안 되면 여기부터 볼 것:
 - Settings → Actions → General → Workflow permissions = **Read and write**
 - Settings → Pages → Source = **GitHub Actions**
+
+Source 가 브랜치로 되돌아가면 `pages build and deployment` 라는 내장 워크플로가 같이
+돌기 시작한다. 이게 실행 이력에 보이면 설정이 풀린 것이다. 그 상태에서는 저장소에
+`index.html` 이 없으므로 사이트가 404 가 된다.
 
 ## 이 저장소의 git 설정
 

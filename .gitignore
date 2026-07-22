@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+
+# 생성물 — Actions 가 빌드해 Pages 아티팩트로 배포한다
+index.html
+_site/
