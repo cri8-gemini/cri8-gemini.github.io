@@ -23,13 +23,15 @@ CARDS = {
     "생돈": "live_price",
 }
 
-# 좌표는 페이지 폭에 대한 비율로 잡는다. 호마다 폭이 1080 과 800 두 가지다.
-# 카드 라벨은 폭의 65.5% 지점에 왼쪽 정렬돼 있고, 본문이 우연히 그 열에 걸치는
-# 경우가 있어 좁게 조여야 가짜 카드가 안 생긴다.
-CARD_X = (0.645, 0.668)
-# 값을 읽을 가로 범위. 왼쪽 경계가 없으면 본문 숫자가, 오른쪽을 넓게 잡으면
-# 증감폭(0.8 %, $ 0.12)이 본값에 섞여 들어온다.
-VALUE_X = (0.645, 0.83)
+# 카드 열의 x 는 고정이 아니다. 2026년 호는 소·돼지 카드가 모두 오른쪽 열에
+# 있지만, 2024년 호는 돼지 카드가 왼쪽 열(폭의 8%)에 있다. 그래서 좌표를 박아
+# 두면 절반을 놓친다.
+#
+# 대신 "카드는 한 섹션에 4장이 같은 x 로 세로로 늘어선다"는 성질로 열을 찾는다.
+# 본문에 우연히 나온 '컷아웃' 같은 낱말은 같은 x 에 여럿 모이지 않아 걸러진다.
+COLUMN_TOLERANCE = 8       # 같은 열로 볼 x 차이
+MIN_CARDS_PER_COLUMN = 3   # 한 섹션은 카드 4장이다
+VALUE_WIDTH = 0.19         # 라벨 x 부터 이만큼(폭 대비)이 값 자리. 그 밖은 증감폭.
 VALUE_BAND = (20, 85)      # 라벨 아래 값이 오는 구간
 PREV_BAND = (95, 175)      # '전 주 …' 가 오는 구간
 
@@ -52,49 +54,80 @@ def parse_korean_number(text):
     return plain
 
 
-def sections(words):
-    """'U.S. beef|pork market trends' 헤더의 y 를 찾아 구간을 나눈다."""
-    found = []
-    for word in words:
-        if word[4] not in ("beef", "pork"):
-            continue
-        line = [w[4] for w in words if abs(w[1] - word[1]) < 6]
-        if "trends" in line and "U.S." in line:
-            found.append((word[1], word[4]))
-    return sorted(found)
+def species_of(word, anchors):
+    """카드의 축종을 정한다.
+
+    영문 섹션 헤더('U.S. beef market trends')로 판단했더니 2024년 호에서
+    실패했다. 연도마다 레이아웃이 바뀌므로 PDF 안에서 스스로 성립하는 성질만
+    쓴다 — 한 섹션에는 생우(소) 또는 생돈(돼지) 카드가 정확히 하나씩 있으니,
+    같은 열에서 세로로 가장 가까운 그 카드가 이 카드의 축종이다.
+    """
+    if word[4] == "생우":
+        return "beef"
+    if word[4] == "생돈":
+        return "pork"
+
+    same_column = [a for a in anchors
+                   if a[4] in ("생우", "생돈") and abs(a[0] - word[0]) <= COLUMN_TOLERANCE]
+    if not same_column:
+        return None
+    nearest = min(same_column, key=lambda a: abs(a[1] - word[1]))
+    return "beef" if nearest[4] == "생우" else "pork"
 
 
-def species_at(marks, y):
-    """그 카드보다 위에 있는 가장 가까운 섹션 헤더의 축종."""
-    current = None
-    for mark_y, name in marks:
-        if mark_y <= y:
-            current = name
-    return current
+# 단위 라벨에는 숫자가 붙어 있다 — '100파운드당가격', '1파운드당가격'.
+# 레이아웃에 따라 이게 값 자리 안으로 들어오는데(2024년 호의 생우 카드),
+# 그대로 두면 생우 가격이 통째로 100 으로 읽힌다.
+UNIT_LABEL = re.compile(r"당가격|단위")
+
+# 이 PDF 는 일부 한글 음절을 사용자 정의 영역(PUA) 글리프로 넣는다.
+# 그래서 '100파운드당가격' 이 '100파운드당가격' 으로 추출되고, 순진하게
+# 패턴을 맞추면 빗나간다. 비교 전에 걷어낸다.
+PUA = re.compile(r"[-]")
+clean = lambda text: PUA.sub("", text)
 
 
-def row_text(words, y0, y1, width):
-    lo, hi = VALUE_X[0] * width, VALUE_X[1] * width
-    picked = [w for w in words if y0 < w[1] < y1 and lo <= w[0] < hi]
-    return " ".join(w[4] for w in sorted(picked, key=lambda w: w[0]))
+def row_text(words, y0, y1, lo, hi):
+    picked = [clean(w[4]) for w in sorted(words, key=lambda w: w[0])
+              if y0 < w[1] < y1 and lo <= w[0] < hi]
+    return " ".join(t for t in picked if not UNIT_LABEL.search(t))
+
+
+def card_columns(words):
+    """카드 라벨이 3개 이상 같은 x 에 늘어선 곳만 카드 열로 본다."""
+    xs = sorted(w[0] for w in words if w[4] in CARDS)
+    columns, group = [], []
+    for x in xs:
+        if group and x - group[-1] > COLUMN_TOLERANCE:
+            if len(group) >= MIN_CARDS_PER_COLUMN:
+                columns.append(sum(group) / len(group))
+            group = []
+        group.append(x)
+    if len(group) >= MIN_CARDS_PER_COLUMN:
+        columns.append(sum(group) / len(group))
+    return columns
 
 
 def extract_cards(words, width):
-    marks = sections(words)
-    lo, hi = CARD_X[0] * width, CARD_X[1] * width
+    columns = card_columns(words)
+    anchors = [w for w in words if w[4] in CARDS]
     out = []
     for word in words:
-        if word[4] not in CARDS or not lo <= word[0] <= hi:
+        if word[4] not in CARDS:
+            continue
+        if not any(abs(word[0] - c) <= COLUMN_TOLERANCE for c in columns):
             continue
         y = word[1]
-        value = parse_korean_number(row_text(words, y + VALUE_BAND[0], y + VALUE_BAND[1], width))
-        prev_raw = row_text(words, y + PREV_BAND[0], y + PREV_BAND[1], width)
-        prev = parse_korean_number(prev_raw) if "전" in prev_raw else None
-        if value is None:
+        lo, hi = word[0] - 5, word[0] + VALUE_WIDTH * width
+        value = parse_korean_number(row_text(words, y + VALUE_BAND[0], y + VALUE_BAND[1], lo, hi))
+        prev_raw = row_text(words, y + PREV_BAND[0], y + PREV_BAND[1], lo, hi)
+        # 진짜 카드는 반드시 '전 주 …' 줄을 갖는다. 본문에 우연히 같은 열로
+        # 떨어진 낱말을 거르는 기준으로 쓴다.
+        if "전" not in prev_raw:
             continue
-        species = "beef" if word[4] == "생우" else "pork" if word[4] == "생돈" \
-            else species_at(marks, y)
-        if not species:
+        prev = parse_korean_number(prev_raw)
+        species = species_of(word, anchors)
+        if value is None or species is None:
             continue
         out.append({"species": species, "metric": CARDS[word[4]],
                     "value": value, "prev": prev})
@@ -107,16 +140,19 @@ def extract_cards(words, width):
 # 수출량은 다른 지표보다 훨씬 늦게 집계된다. 위 예에서 가격표의 최신 주는
 # 7/18 인데 수출 집계는 7/9 까지다. 그래서 카드 지표와 같은 주로 묶으면 안 되고,
 # 본문이 밝힌 기간의 끝 날짜를 쓴다.
+# 문구가 해마다 다르다. 숫자 앞에 서술이 끼고("전 주 대비 14% 감소한 28,920톤"),
+# "그중"/"그 중", "32,800 톤"처럼 띄어쓰기도 흔들린다. 그래서 숫자를 바로
+# 집으려 하지 말고 "톤" 앞의 숫자를 찾는다.
 EXPORT = re.compile(
     r"(\d{1,2})월\s*(\d{1,2})일부터\s*(?:(\d{1,2})월\s*)?(\d{1,2})일까지\s*"
-    r"미국의\s*(소고기|돼지고기)\s*수출량은\s*([\d,]+)\s*톤.{0,40}?"
-    r"한국으로의\s*수출량은\s*([\d,]+)\s*톤",
+    r"미국의\s*(소고기|돼지고기)\s*수출량은[^톤]{0,60}?([\d,]+)\s*톤"
+    r".{0,80}?한국으로의\s*수출량은[^톤]{0,60}?([\d,]+)\s*톤",
     re.S,
 )
 
 
 def extract_exports(text, issue_date):
-    flat = re.sub(r"\s+", " ", text)
+    flat = re.sub(r"\s+", " ", clean(text))
     out = []
     for m in EXPORT.finditer(flat):
         start_month, _, end_month, end_day, kind, total, korea = m.groups()
