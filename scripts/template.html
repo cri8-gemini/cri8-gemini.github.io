@@ -20,6 +20,11 @@
     --border: rgba(11, 11, 11, 0.10);
     --series-stock: #2a78d6;
     --series-meat: #eb6834;
+    /* 상관계수는 부호가 뜻을 가지므로 발산형(따뜻함↔차가움) 한 쌍을 쓴다 */
+    --pos: #2a78d6;
+    --neg: #e34948;
+    --neutral: #c3c2b7;
+    --band: rgba(11, 11, 11, 0.05);
     --wash: rgba(11, 11, 11, 0.04);
 
     background: var(--plane);
@@ -43,6 +48,10 @@
       --border: rgba(255, 255, 255, 0.10);
       --series-stock: #3987e5;
       --series-meat: #d95926;
+      --pos: #3987e5;
+      --neg: #e66767;
+      --neutral: #898781;
+      --band: rgba(255, 255, 255, 0.06);
       --wash: rgba(255, 255, 255, 0.06);
     }
   }
@@ -58,6 +67,10 @@
     --border: rgba(255, 255, 255, 0.10);
     --series-stock: #3987e5;
     --series-meat: #d95926;
+    --pos: #3987e5;
+    --neg: #e66767;
+    --neutral: #898781;
+    --band: rgba(255, 255, 255, 0.06);
     --wash: rgba(255, 255, 255, 0.06);
   }
 
@@ -212,6 +225,16 @@
     </div>
   </div>
 
+  <div class="card" id="lag-card" style="margin-top:16px">
+    <h2 class="card-title" id="lag-title">시차 상관</h2>
+    <p class="card-note" id="lag-note"></p>
+    <div class="plot" id="lag-plot">
+      <svg id="lag-svg" role="img" aria-labelledby="lag-title"></svg>
+      <div class="tooltip" id="lag-tooltip" role="status" aria-live="polite"></div>
+    </div>
+    <p class="card-note" id="lag-read" style="margin-top:10px"></p>
+  </div>
+
   <footer>
     <p id="foot-meta"></p>
     <p>
@@ -237,7 +260,7 @@ const RANGES = [
 ];
 
 const state = {
-  range: "all",
+  range: "1y",
   meat: DATA.meat[0].key,
   // 두 계열의 상승폭 차이가 워낙 커서(21년 기준 16배 vs 1.2배) 선형 축에서는
   // 육류 선이 바닥에 눌린다. 로그 축에서는 세로 거리 = 변화율이라 나란히 읽힌다.
@@ -279,6 +302,46 @@ function indexed(rows) {
     rawMeat: r[meatIdx],
   }));
 }
+
+// 시차 k(주) = 육류가 k 주 먼저 움직인 것을 주가와 맞춰 본다.
+// 음수면 반대로 주가가 먼저다. 0 이면 같은 주.
+const LAGS = [-13, -8, -4, 0, 4, 8, 13, 26];
+const MIN_OBS = 12; // 관측치가 이보다 적으면 상관계수를 신뢰할 수 없다
+
+function lagCorrelations(points) {
+  // 변화율은 인접 주 사이에서만 계산한다 (수준이 아니라 변화율 기준).
+  const stockRet = [], meatRet = [];
+  for (let i = 1; i < points.length; i++) {
+    stockRet.push(points[i].rawStock / points[i - 1].rawStock - 1);
+    meatRet.push(points[i].rawMeat / points[i - 1].rawMeat - 1);
+  }
+
+  return LAGS.map((lag) => {
+    const a = [], b = [];
+    for (let i = 0; i < stockRet.length; i++) {
+      const j = i - lag; // 육류를 lag 주 앞당겨 같은 시점에 놓는다
+      if (j < 0 || j >= meatRet.length) continue;
+      a.push(stockRet[i]); b.push(meatRet[j]);
+    }
+    return { lag, ...pearson(a, b) };
+  }).filter((d) => d.n >= MIN_OBS);
+}
+
+function pearson(a, b) {
+  if (a.length < 3) return { r: null, n: a.length };
+  const mean = (xs) => xs.reduce((s, x) => s + x, 0) / xs.length;
+  const ma = mean(a), mb = mean(b);
+  let num = 0, da = 0, db = 0;
+  for (let i = 0; i < a.length; i++) {
+    const xa = a[i] - ma, xb = b[i] - mb;
+    num += xa * xb; da += xa * xa; db += xb * xb;
+  }
+  return { r: da && db ? num / Math.sqrt(da * db) : null, n: a.length };
+}
+
+// 관측치가 n 개일 때 우연히 나올 수 있는 상관계수의 대략적 크기.
+// 이 띠 안에 들어오면 "관계 없음"으로 읽어야 한다.
+const noiseBand = (n) => 1.96 / Math.sqrt(n);
 
 function correlation(points) {
   // 수준(level)이 아니라 주간 변화율로 계산한다. 둘 다 장기 우상향이면
@@ -548,6 +611,139 @@ function hideHover() {
   el("tooltip").classList.remove("on");
 }
 
+/* ---------- 시차 상관 ---------- */
+
+const LAG_H = 210;
+const LAG_PAD = { top: 14, right: 14, bottom: 34, left: 40 };
+
+function renderLag(points) {
+  const data = lagCorrelations(points);
+  const svg = el("lag-svg");
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  if (!data.length) {
+    el("lag-note").textContent = `구간이 짧아 시차를 볼 수 없습니다 (최소 ${MIN_OBS}주 필요).`;
+    el("lag-read").textContent = "";
+    return;
+  }
+
+  const width = el("lag-plot").clientWidth || 900;
+  svg.setAttribute("viewBox", `0 0 ${width} ${LAG_H}`);
+  svg.setAttribute("height", LAG_H);
+
+  const innerW = width - LAG_PAD.left - LAG_PAD.right;
+  const innerH = LAG_H - LAG_PAD.top - LAG_PAD.bottom;
+
+  // 잡음 띠는 시차마다 다르다. 시차가 클수록 겹치는 구간이 짧아져 관측치가
+  // 줄고, 우연히 나올 수 있는 상관계수는 그만큼 커진다. 하나로 통일하면
+  // 관측치가 많은 시차를 과하게 깎아내리게 된다.
+  data.forEach((d) => { d.band = noiseBand(d.n); });
+
+  const maxBand = Math.max(...data.map((d) => d.band));
+  const bound = Math.max(0.4, Math.ceil(Math.max(...data.map((d) => Math.abs(d.r) || 0), maxBand) * 10) / 10);
+  const y = (v) => LAG_PAD.top + innerH / 2 - (v / bound) * (innerH / 2);
+  const slot = innerW / data.length;
+  const barW = Math.min(38, slot * 0.5);
+
+  // 잡음 띠 — 이 안쪽은 우연으로도 나올 수 있는 크기
+  data.forEach((d, i) => {
+    svg.appendChild(node("rect", {
+      x: LAG_PAD.left + slot * i, y: y(d.band),
+      width: slot, height: y(-d.band) - y(d.band),
+      fill: "var(--band)",
+    }));
+  });
+
+  [-bound, 0, bound].forEach((v) => {
+    svg.appendChild(node("line", {
+      x1: LAG_PAD.left, x2: LAG_PAD.left + innerW, y1: y(v), y2: y(v),
+      stroke: v === 0 ? "var(--axis)" : "var(--grid)", "stroke-width": 1,
+    }));
+    svg.appendChild(node("text", {
+      x: LAG_PAD.left - 8, y: y(v) + 4, "text-anchor": "end",
+      fill: "var(--text-muted)", "font-size": 11, "font-variant-numeric": "tabular-nums",
+    }, fmt(v, 1)));
+  });
+
+  data.forEach((d, i) => {
+    const cx = LAG_PAD.left + slot * (i + 0.5);
+    const weak = Math.abs(d.r) < d.band;
+    const color = weak ? "var(--neutral)" : d.r >= 0 ? "var(--pos)" : "var(--neg)";
+    const top = Math.min(y(d.r), y(0));
+    const height = Math.abs(y(d.r) - y(0));
+
+    svg.appendChild(node("rect", {
+      x: cx - barW / 2, y: top, width: barW, height: Math.max(height, 1),
+      fill: color, rx: 3,
+      "data-lag": d.lag, "data-r": d.r, "data-n": d.n, "data-weak": weak ? "1" : "",
+    }));
+
+    // 막대마다 값을 직접 적어서 색에만 기대지 않는다
+    svg.appendChild(node("text", {
+      x: cx, y: d.r >= 0 ? top - 5 : top + height + 13, "text-anchor": "middle",
+      fill: "var(--text-secondary)", "font-size": 11, "font-variant-numeric": "tabular-nums",
+    }, fmt(d.r, 2)));
+
+    svg.appendChild(node("text", {
+      x: cx, y: LAG_H - 16, "text-anchor": "middle",
+      fill: "var(--text-muted)", "font-size": 11,
+    }, d.lag === 0 ? "동시" : `${d.lag > 0 ? "+" : ""}${d.lag}주`));
+  });
+
+  svg.appendChild(node("text", {
+    x: LAG_PAD.left, y: LAG_H - 2, fill: "var(--text-muted)", "font-size": 10.5,
+  }, "◀ 주가가 먼저"));
+  svg.appendChild(node("text", {
+    x: LAG_PAD.left + innerW, y: LAG_H - 2, "text-anchor": "end",
+    fill: "var(--text-muted)", "font-size": 10.5,
+  }, "육류가 먼저 ▶"));
+
+  el("lag-note").textContent =
+    "육류 시세를 앞뒤로 옮겨 가며 주간 변화율 상관을 다시 계산합니다 · "
+    + "회색 띠 안쪽은 우연으로도 나올 수 있는 크기입니다 "
+    + "(시차가 클수록 겹치는 구간이 짧아져 띠가 넓어집니다)";
+
+  const strongest = data.reduce((best, d) =>
+    Math.abs(d.r) > Math.abs(best.r) ? d : best);
+  const meaningful = Math.abs(strongest.r) >= strongest.band;
+  el("lag-read").textContent = meaningful
+    ? `가장 큰 값은 ${strongest.lag === 0 ? "동시점" : `육류가 ${strongest.lag > 0 ? strongest.lag + "주 먼저"
+      : -strongest.lag + "주 뒤"}`}일 때 ${fmt(strongest.r, 2)} 입니다. `
+      + `띠를 벗어나긴 했지만 여러 시차를 한꺼번에 본 결과라, 하나가 우연히 튀어나올 수 있습니다.`
+    : `모든 시차가 잡음 띠 안에 있습니다 — 이 구간에서는 시차를 두어도 뚜렷한 관계가 보이지 않습니다.`;
+}
+
+function lagHover(clientX) {
+  const svg = el("lag-svg");
+  const bars = [...svg.querySelectorAll("rect[data-lag]")];
+  if (!bars.length) return;
+
+  const rect = svg.getBoundingClientRect();
+  const ratio = svg.viewBox.baseVal.width / rect.width;
+  const x = (clientX - rect.left) * ratio;
+
+  let best = null, bestDist = Infinity;
+  bars.forEach((bar) => {
+    const cx = +bar.getAttribute("x") + +bar.getAttribute("width") / 2;
+    const dist = Math.abs(cx - x);
+    if (dist < bestDist) { bestDist = dist; best = bar; }
+  });
+
+  const lag = +best.dataset.lag, r = +best.dataset.r, n = +best.dataset.n;
+  const when = lag === 0 ? "같은 주" : lag > 0 ? `육류가 ${lag}주 먼저` : `주가가 ${-lag}주 먼저`;
+  const tip = el("lag-tooltip");
+  tip.innerHTML = `<div class="tt-date">${when}</div>
+    <div class="tt-row"><span>상관계수</span><span class="tt-val">${fmt(r, 3)}</span></div>
+    <div class="tt-row"><span>관측치</span><span class="tt-val">${n}주</span></div>
+    ${best.dataset.weak ? '<div class="tt-date" style="margin:4px 0 0">잡음 범위 안</div>' : ""}`;
+
+  const cx = +best.getAttribute("x") + +best.getAttribute("width") / 2;
+  const px = (cx / svg.viewBox.baseVal.width) * rect.width;
+  tip.style.left = Math.min(Math.max(px, 76), el("lag-plot").clientWidth - 76) + "px";
+  tip.style.top = "6px";
+  tip.classList.add("on");
+}
+
 /* ---------- 표 ---------- */
 
 function renderTable(points) {
@@ -616,6 +812,7 @@ function render() {
   }
 
   const points = indexed(rows);
+  current.points = points; // 표 보기에서도 리사이즈 시 시차 차트를 다시 그릴 수 있도록
   renderLegend();
   renderStats(points);
 
@@ -628,6 +825,9 @@ function render() {
   el("table-view").classList.toggle("hidden", state.view !== "table");
 
   if (state.view === "chart") renderChart(points); else renderTable(points);
+
+  el("lag-title").textContent = `${DATA.stockLabel} vs ${meatMeta().label} — 시차 상관`;
+  renderLag(points);
 }
 
 /* ---------- 부트 ---------- */
@@ -639,10 +839,18 @@ const plot = el("plot");
 plot.addEventListener("pointermove", (e) => { if (state.view === "chart") showHover(e.clientX); });
 plot.addEventListener("pointerleave", hideHover);
 
+const lagPlot = el("lag-plot");
+lagPlot.addEventListener("pointermove", (e) => lagHover(e.clientX));
+lagPlot.addEventListener("pointerleave", () => el("lag-tooltip").classList.remove("on"));
+
 let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { if (state.view === "chart" && current.points.length) renderChart(current.points); }, 120);
+  resizeTimer = setTimeout(() => {
+    if (!current.points.length) return;
+    if (state.view === "chart") renderChart(current.points);
+    renderLag(current.points);
+  }, 120);
 });
 
 render();

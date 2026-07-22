@@ -117,7 +117,7 @@ def main():
     data_json = data_json.replace("</", "<\\/")
 
     html = template.replace("/*__DATA__*/null", data_json)
-    with open(OUT_HTML, "w", encoding="utf-8") as fp:
+    with open(OUT_HTML, "w", encoding="utf-8", newline="\n") as fp:  # LF 고정
         fp.write(html)
 
     covered = [r for r in payload["rows"] if r[1] is not None and r[2] is not None]
