@@ -58,16 +58,22 @@ CUT_ITEMS = {
     "193 Flank Steak": "cut_193",
 }
 
-# 비교 대상 종목. 육류 계열 41개 × 시차 3개 검정에서 잡음 띠를 벗어난 횟수로
-# 골랐다(우연 기대치 6.2회, 위약 검정은 6~7회로 수렴). 자세한 근거는 CLAUDE.md.
+# 비교 대상 종목. **업태로 골랐다** — 통계로 고르지 않은 이유는 CLAUDE.md 참고.
+# 요약하면 2023년 이후 구간에서는 대조군인 "공급 -> 가격" 관계조차 검출되지
+# 않아, 통계로 고르면 잡음의 순위를 고르는 셈이 된다.
 STOCKS = [
-    {"key": "txrh", "ticker": "TXRH", "label": "TXRH (텍사스로드하우스)"},
-    {"key": "cake", "ticker": "CAKE", "label": "CAKE (치즈케이크팩토리)"},
-    {"key": "cbrl", "ticker": "CBRL", "label": "CBRL (크래커배럴)"},
-    {"key": "blmn", "ticker": "BLMN", "label": "BLMN (아웃백)"},
-    {"key": "bjri", "ticker": "BJRI", "label": "BJRI (BJ's)"},
-    {"key": "stks", "ticker": "STKS", "label": "STKS (STK)"},
-    {"key": "spy", "ticker": "SPY", "label": "SPY (시장 전체)"},
+    {"key": "txrh", "ticker": "TXRH", "label": "TXRH (텍사스로드하우스)", "group": "스테이크하우스"},
+    {"key": "blmn", "ticker": "BLMN", "label": "BLMN (아웃백)", "group": "스테이크하우스"},
+    {"key": "dri", "ticker": "DRI", "label": "DRI (다든/롱혼)", "group": "스테이크하우스"},
+    {"key": "stks", "ticker": "STKS", "label": "STKS (STK)", "group": "스테이크하우스"},
+    {"key": "cake", "ticker": "CAKE", "label": "CAKE (치즈케이크)", "group": "캐주얼다이닝"},
+    {"key": "eat", "ticker": "EAT", "label": "EAT (칠리스)", "group": "캐주얼다이닝"},
+    {"key": "cbrl", "ticker": "CBRL", "label": "CBRL (크래커배럴)", "group": "캐주얼다이닝"},
+    {"key": "bjri", "ticker": "BJRI", "label": "BJRI (BJ's)", "group": "캐주얼다이닝"},
+    {"key": "dpz", "ticker": "DPZ", "label": "DPZ (도미노)", "group": "대조군"},
+    {"key": "wen", "ticker": "WEN", "label": "WEN (웬디스)", "group": "대조군"},
+    {"key": "cava", "ticker": "CAVA", "label": "CAVA (카바)", "group": "대조군"},
+    {"key": "spy", "ticker": "SPY", "label": "SPY (시장 전체)", "group": "대조군"},
 ]
 
 

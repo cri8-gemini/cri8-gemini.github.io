@@ -174,8 +174,16 @@
       <div class="chips" role="group" aria-labelledby="lbl-range" id="range-chips"></div>
     </div>
     <div class="group">
-      <span class="group-label" id="lbl-stock">종목</span>
+      <span class="group-label" id="lbl-stock">스테이크하우스</span>
       <div class="chips" role="group" aria-labelledby="lbl-stock" id="stock-chips"></div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-stock2">캐주얼다이닝</span>
+      <div class="chips" role="group" aria-labelledby="lbl-stock2" id="stock-chips2"></div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-stock3">대조군</span>
+      <div class="chips" role="group" aria-labelledby="lbl-stock3" id="stock-chips3"></div>
     </div>
     <div class="group">
       <span class="group-label" id="lbl-meat">가격 지표</span>
@@ -286,6 +294,10 @@ DATA.columns.forEach((key, i) => { COL[key] = i + 1; });
 
 const RANGES = [
   { id: "all", label: "전체" },
+  // 2023년 이후는 코로나 충격이 빠진 구간이다. 다만 164주뿐이라 잡음 띠가
+  // ±0.15 로 넓고, 대조군인 "공급 -> 가격" 관계조차 이 구간에서는 검출되지
+  // 않는다. 여기서 관계가 안 보이는 것을 "관계 없음"으로 읽으면 안 된다.
+  { id: "since2023", label: "2023~", from: "2023-01-01" },
   { id: "10y", label: "10년", years: 10 },
   { id: "5y", label: "5년", years: 5 },
   { id: "1y", label: "1년", years: 1 },
@@ -293,7 +305,7 @@ const RANGES = [
 
 const state = {
   stock: DATA.stocks[0].key,
-  range: "1y",
+  range: "since2023",
   meat: DATA.meat[0].key,
   // 두 계열의 상승폭 차이가 워낙 커서(21년 기준 16배 vs 1.2배) 선형 축에서는
   // 육류 선이 바닥에 눌린다. 로그 축에서는 세로 거리 = 변화율이라 나란히 읽힌다.
@@ -360,6 +372,7 @@ function pairedSeries(lag) {
 
 function inRange(rows) {
   const range = RANGES.find((r) => r.id === state.range);
+  if (range.from) return rows.filter((r) => r.date >= range.from);
   if (!range.years || !rows.length) return rows;
   const cutoff = new Date(rows[rows.length - 1].date);
   cutoff.setFullYear(cutoff.getFullYear() - range.years);
@@ -1060,8 +1073,13 @@ function chips(container, items, selected, onPick) {
 }
 
 function render() {
-  chips("stock-chips", DATA.stocks.map((s) => ({ id: s.key, label: s.label })), state.stock,
-    (id) => { state.stock = id; render(); });
+  // 종목은 업태로 나눠 놓았다. 고르는 값은 하나다.
+  const stocksIn = (name) => DATA.stocks.filter((s) => s.group === name)
+    .map((s) => ({ id: s.key, label: s.label }));
+  const pickStock = (id) => { state.stock = id; render(); };
+  chips("stock-chips", stocksIn("스테이크하우스"), state.stock, pickStock);
+  chips("stock-chips2", stocksIn("캐주얼다이닝"), state.stock, pickStock);
+  chips("stock-chips3", stocksIn("대조군"), state.stock, pickStock);
   chips("range-chips", RANGES, state.range, (id) => { state.range = id; render(); });
   // 지표가 14개라 한 줄에 다 넣으면 못 읽는다. 가격/수급으로 나누되 고르는
   // 값은 하나다 — 어느 줄에서 고르든 나머지 줄의 선택은 풀린다.
