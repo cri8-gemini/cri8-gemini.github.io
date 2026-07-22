@@ -15,6 +15,7 @@ usage:
 
 import argparse
 import csv
+import unicodedata
 import datetime as dt
 import os
 import re
@@ -172,7 +173,10 @@ def parse_table(words, table, next_y, kind):
         parts = label.split()
         while parts and DECIMAL.match(parts[-1]):
             parts.pop()
-        label = " ".join(parts)
+        # 활자 합자와 기호 표기가 호마다 다르다. 옛 호는 'neck-oﬀ'(ﬀ 합자)와
+        # '1x1'(ASCII x), 최근 호는 'neck-off'와 '1×1'(곱셈기호)을 쓴다. 그대로
+        # 두면 같은 부위가 서로 다른 항목으로 갈린다.
+        label = unicodedata.normalize("NFKC", " ".join(parts)).replace("×", "x")
         if not label:
             continue
         values = {}

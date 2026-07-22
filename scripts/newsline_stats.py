@@ -33,7 +33,10 @@ COLUMN_TOLERANCE = 8       # 같은 열로 볼 x 차이
 MIN_CARDS_PER_COLUMN = 3   # 한 섹션은 카드 4장이다
 VALUE_WIDTH = 0.19         # 라벨 x 부터 이만큼(폭 대비)이 값 자리. 그 밖은 증감폭.
 VALUE_BAND = (20, 85)      # 라벨 아래 값이 오는 구간
-PREV_BAND = (95, 175)      # '전 주 …' 가 오는 구간
+PREV_BAND = (85, 175)      # '전 주 …' 가 오는 구간. 아래끝은 다음 카드 직전까지 좁힌다.
+
+# 전주값 줄의 문구가 호마다 다르다 — '전 주 $2.90', '전주 $2.90', '지난주 $2.10'.
+PREV_LABEL = re.compile(r"전\s*주|지난\s*주")
 
 NUM = re.compile(r"\d[\d,]*(?:\.\d+)?")
 UNITS = {"억": 10 ** 8, "만": 10 ** 4}
@@ -128,10 +131,18 @@ def extract_cards(words, width):
         y = word[1]
         lo, hi = word[0] - 5, word[0] + VALUE_WIDTH * width
         value = parse_korean_number(row_text(words, y + VALUE_BAND[0], y + VALUE_BAND[1], lo, hi))
-        prev_raw = row_text(words, y + PREV_BAND[0], y + PREV_BAND[1], lo, hi)
-        # 진짜 카드는 반드시 '전 주 …' 줄을 갖는다. 본문에 우연히 같은 열로
-        # 떨어진 낱말을 거르는 기준으로 쓴다.
-        if "전" not in prev_raw:
+
+        # 카드 간격이 호마다 다르다 — 2026년은 240pt, 2020년은 121pt 다. 전주값
+        # 구간을 고정하면 촘촘한 호에서 다음 카드의 값을 끌어온다. 같은 열의
+        # 다음 카드 직전까지로 잘라 준다.
+        below = [a[1] for a in anchors
+                 if abs(a[0] - word[0]) <= COLUMN_TOLERANCE and a[1] > y + VALUE_BAND[1]]
+        prev_end = min(y + PREV_BAND[1], min(below) - 6) if below else y + PREV_BAND[1]
+        prev_raw = row_text(words, y + PREV_BAND[0], prev_end, lo, hi)
+
+        # 진짜 카드는 반드시 전주값 줄을 갖는다. 본문에 우연히 같은 열로 떨어진
+        # 낱말을 거르는 기준으로 쓴다.
+        if not PREV_LABEL.search(prev_raw):
             continue
         prev = parse_korean_number(prev_raw)
         species = species_of(word, anchors)
