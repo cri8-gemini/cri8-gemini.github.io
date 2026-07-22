@@ -269,6 +269,14 @@
     <p class="card-note" id="lag-read" style="margin-top:10px"></p>
   </div>
 
+  <div class="card" id="top-card" style="margin-top:16px">
+    <h2 class="card-title">방향 일치율 상위 5</h2>
+    <p class="card-note" id="top-note"></p>
+    <div class="table-wrap">
+      <table id="top-table"></table>
+    </div>
+  </div>
+
   <div class="card" id="quarter-card" style="margin-top:16px">
     <h2 class="card-title" id="q-title">분기 단위 비교</h2>
     <p class="card-note" id="q-note"></p>
@@ -375,11 +383,11 @@ DATA.rows.forEach((r) => BY_WEEK.set(weekNo(r[0]), r));
 
 // 두 계열이 함께 있는 주만 남긴다. 한쪽만 있는 주를 섞으면 지수 기준점이
 // 서로 다른 날짜가 되어 두 선이 어긋난다.
-function pairedSeries(lag) {
-  const meatIdx = COL[state.meat];
+function pairedSeries(lag, stockKey = state.stock, meatKey = state.meat) {
+  const meatIdx = COL[meatKey];
   const out = [];
   for (const row of DATA.rows) {
-    const stock = row[COL[state.stock]];
+    const stock = row[COL[stockKey]];
     if (stock == null) continue;
     const src = BY_WEEK.get(weekNo(row[0]) - lag); // lag 주 전의 육류 값
     const meat = src ? src[meatIdx] : null;
@@ -873,6 +881,65 @@ function lagHover(clientX) {
   tip.classList.add("on");
 }
 
+/* ---------- 상위 조합 ---------- */
+
+const TOP_MIN_WEEKS = 60;   // 표본이 이보다 적으면 비율이 요동친다
+
+// 지금 고른 기간·변화율 기준으로 모든 (종목 × 지표 × 시차) 를 훑어 방향 일치율
+// 상위를 뽑는다. 1200 조합이라 눈으로 찾기 어렵다.
+//
+// 주의: 1200 개를 훑어 1등을 고르는 일 자체가 값을 부풀린다. 표본 150주에서
+// 60% 는 우연으로도 20번에 한 번 나오므로, 1200 개 중 수십 개가 60%대인 것이
+// 정상이다. 순위는 "지나간 구간의 기록" 이지 예측이 아니다.
+function topPairs(limit) {
+  const out = [];
+  for (const stock of DATA.stocks) {
+    for (const meat of DATA.meat) {
+      for (const lag of LAGS) {
+        const rows = inRange(pairedSeries(lag, stock.key, meat.key));
+        if (rows.length < TOP_MIN_WEEKS) continue;
+        const agree = directionAgreement(rows);
+        if (agree) out.push({ stock, meat, lag, ...agree });
+      }
+    }
+  }
+  out.sort((a, b) => b.rate - a.rate);
+  return out.slice(0, limit);
+}
+
+function renderTop() {
+  const top = topPairs(5);
+  const horizon = HORIZONS.find((h) => h.id === state.horizon).label;
+  el("top-note").textContent =
+    `${horizon} 변화율 기준 · 지금 고른 기간에서 종목 12 × 지표 ${DATA.meat.length} × 시차 ${LAGS.length} `
+    + `= ${DATA.stocks.length * DATA.meat.length * LAGS.length}개 조합을 훑은 결과 · 줄을 누르면 그 조합으로 바뀝니다`;
+
+  if (!top.length) {
+    el("top-table").innerHTML = "";
+    return;
+  }
+  const head = `<thead><tr><th>종목</th><th>지표</th><th>시차</th><th>방향</th>
+    <th>일치율</th><th>표본</th></tr></thead>`;
+  const body = top.map((t) => `<tr data-stock="${t.stock.key}" data-meat="${t.meat.key}"
+      data-lag="${t.lag}" style="cursor:pointer">
+    <td>${t.stock.label.split(" ")[0]}</td><td>${t.meat.label}</td>
+    <td>${lagChipLabel(t.lag)}</td>
+    <td>${t.aligned ? "원가↑ → 주가↑" : "원가↑ → 주가↓"}</td>
+    <td>${fmt(t.rate * 100, 1)}%</td><td>${t.n}주</td>
+  </tr>`).join("");
+  const table = el("top-table");
+  table.innerHTML = head + `<tbody>${body}</tbody>`;
+  table.querySelectorAll("tbody tr").forEach((tr) => {
+    tr.addEventListener("click", () => {
+      state.stock = tr.dataset.stock;
+      state.meat = tr.dataset.meat;
+      state.lag = +tr.dataset.lag;
+      render();
+      document.getElementById("chart-title").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+}
+
 /* ---------- 분기 단위 ---------- */
 
 // 원가는 서서히 쌓여 분기 마진에 반영되고, 주가는 실적 발표 즈음 움직인다.
@@ -1195,6 +1262,7 @@ function render() {
 
   if (state.view === "chart") renderChart(points); else renderTable(points);
   renderLag();
+  renderTop();
 
   chips("qlag-chips", QLAGS, state.qlag, (id) => { state.qlag = id; renderQuarter(); });
   renderQuarter();
