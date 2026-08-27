@@ -3853,3 +3853,13 @@ week,species,metric,value,prev
 2026-08-08,pork,live_price,97.67,99.37
 2026-08-08,pork,production,488100000,486600000
 2026-08-08,pork,slaughter,2281000,2272000
+2026-08-13,beef,export_korea,3630,
+2026-08-13,beef,export_total,12650,
+2026-08-22,beef,cutout,3.88,3.73
+2026-08-22,beef,live_price,225.29,229.4
+2026-08-22,beef,production,461800000,456700000
+2026-08-22,beef,slaughter,523000,517000
+2026-08-22,pork,cutout,0.98,1
+2026-08-22,pork,live_price,94.27,93.3
+2026-08-22,pork,production,502200000,496800000
+2026-08-22,pork,slaughter,2366000,2334000
